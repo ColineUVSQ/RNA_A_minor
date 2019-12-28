@@ -585,7 +585,7 @@ def extension_sous_graphe(graphe1, graphe2, sommet1, sommet2, sous_graphe_commun
                         if voisin_1 not in sous_graphe_commun_1.nodes() :
                             paire_avec_voisin_1 = 0
                             for voisin_2 in graphe2[noeud[1]] :
-                                if voisin_2 not in sous_graphe_commun_2.nodes() and ((voisin_1, voisin_2) not in liste_noeuds_a_voir  and (voisin_1, voisin_2) not in liste_noeuds_chaines) :
+                                if voisin_2 not in sous_graphe_commun_2.nodes() : # ((voisin_1, voisin_2) not in liste_noeuds_a_voir  and (voisin_1, voisin_2) not in liste_noeuds_chaines) :
                                     if meme_type_meme_chaine(voisin_1, voisin_2, graphe1, graphe2) and test_compatibilite(sous_graphe, (voisin_1, voisin_2), graphe1, graphe2) and not dans_graphe(sous_graphe, (voisin_1, voisin_2)):
                                         for edge_1 in graphe1[noeud[0]][voisin_1] :
                                             for edge_2 in graphe2[noeud[1]][voisin_2] :
@@ -636,9 +636,9 @@ def extension_sous_graphe(graphe1, graphe2, sommet1, sommet2, sous_graphe_commun
                                                             sous_graphe1.add_edge(voisin_1, noeud[0], label=label_inv)
                                                             sous_graphe2.add_edge(voisin_2, noeud[1], label=label_inv)
         
-                                                    #if (voisin_1, voisin_2) not in liste_noeuds_chaines and (voisin_1, voisin_2) not in liste_noeuds_a_voir :
+                                                    if (voisin_1, voisin_2) not in liste_noeuds_chaines and (voisin_1, voisin_2) not in liste_noeuds_a_voir :
                                                     #and (voisin_1, voisin_2) not in [(1,1), (2,2), (3,3), (4,4)] :
-                                                    liste_noeuds_chaines.append((voisin_1, voisin_2))
+                                                        liste_noeuds_chaines.append((voisin_1, voisin_2))
                                                     #dico_ajout_aretes.update({(voisin_1, voisin_2) : ((noeud[0], noeud[1]), (voisin_1, voisin_2), graphe1[noeud[0]][voisin_1][edge_1]["label"] ) })
 #                                                     
                                         if paire_avec_voisin_1 > len(graphe1[noeud[0]][voisin_1]) :
@@ -650,7 +650,7 @@ def extension_sous_graphe(graphe1, graphe2, sommet1, sommet2, sous_graphe_commun
                             if voisin_1 not in sous_graphe_commun_1.nodes() :
                                 paire_avec_voisin_1 = 0
                                 for voisin_2 in graphe2.predecessors(noeud[1]) :
-                                    if voisin_2 not in sous_graphe_commun_2.nodes() and ((voisin_1, voisin_2) not in liste_noeuds_a_voir  and (voisin_1, voisin_2) not in liste_noeuds_chaines) :
+                                    if voisin_2 not in sous_graphe_commun_2.nodes() : # ((voisin_1, voisin_2) not in liste_noeuds_a_voir  and (voisin_1, voisin_2) not in liste_noeuds_chaines) :
                                         if meme_type_meme_chaine(voisin_1, voisin_2, graphe1, graphe2) and test_compatibilite(sous_graphe, (voisin_1, voisin_2), graphe1, graphe2) and not dans_graphe(sous_graphe, (voisin_1, voisin_2)) :
                                             for edge_1 in graphe1[voisin_1][noeud[0]] :
                                                 for edge_2 in graphe2[voisin_2][noeud[1]] :
@@ -679,9 +679,9 @@ def extension_sous_graphe(graphe1, graphe2, sommet1, sommet2, sous_graphe_commun
                                                             sous_graphe1.add_edge(voisin_1, noeud[0], label=graphe1[voisin_1][noeud[0]][edge_1]["label"])
                                                             sous_graphe2.add_edge(voisin_2, noeud[1], label=graphe1[voisin_1][noeud[0]][edge_1]["label"])
                                                         
-                                                        #if (voisin_1, voisin_2) not in liste_noeuds_chaines and (voisin_1, voisin_2) not in liste_noeuds_a_voir :
+                                                        if (voisin_1, voisin_2) not in liste_noeuds_chaines and (voisin_1, voisin_2) not in liste_noeuds_a_voir :
                                                             #if (voisin_1, voisin_2) not in liste_noeuds_a_voir  :#and (voisin_1, voisin_2) not in [(1,1), (2,2), (3,3), (4,4)] :                                                    
-                                                        liste_noeuds_chaines.append((voisin_1, voisin_2))
+                                                            liste_noeuds_chaines.append((voisin_1, voisin_2))
                                                         #dico_ajout_aretes.update({(voisin_1, voisin_2) : ((voisin_1, voisin_2), (noeud[0], noeud[1]), graphe1[voisin_1][noeud[0]][edge_1]["label"] ) })
     
                                             if paire_avec_voisin_1 > 1 :
@@ -1548,11 +1548,11 @@ if __name__ == '__main__':
                         #break
                 #break
                    
-    with open("liste_sim_diff_algo_heuristique_avec_modif_encore_modif_distance_2_plus_rapide_v5.pickle", 'wb') as fichier_sortie :
+    with open("liste_sim_diff_algo_heuristique_avec_modif_encore_modif_distance_2_plus_rapide_v6.pickle", 'wb') as fichier_sortie :
         mon_pickler = pickle.Pickler(fichier_sortie)
         mon_pickler.dump(liste)        
     
-    with open("dico_graphes_heuristique_v5.pickle", 'wb') as fichier_sortie_2 :
+    with open("dico_graphes_heuristique_v6.pickle", 'wb') as fichier_sortie_2 :
         mon_pickler = pickle.Pickler(fichier_sortie_2)
         mon_pickler.dump(dico_graphes_heuristique) 
                    
