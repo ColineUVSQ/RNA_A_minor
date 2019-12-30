@@ -2,6 +2,9 @@
 Created on 4 nov. 2019
 
 @author: coline
+
+Methode heuristique pour faire les comparaisons de graphes d'extension deux a deux
+(version toutes donnees PDB)
 '''
 
 import networkx as nx
@@ -12,6 +15,7 @@ from recup_data.new_algo_comparaison import calcul_sim_aretes_avec_coeff,\
     recup_chaines
 from recup_data.constantes import NEW_EXTENSION_PATH_TAILLE
 
+''' calcul du nombre d'aretes dans le graphe passe en parametre en comptant le motif '''
 def calcul_aretes_avec_coeff_heuristique(graphe, cle, coeffc, coeffa, coeffn):
     somme_aretes = 0
     
@@ -33,6 +37,7 @@ def calcul_aretes_avec_coeff_heuristique(graphe, cle, coeffc, coeffa, coeffn):
     
     return somme_aretes
 
+''' calcul du nombre d'aretes dans le graphe commun passe en parametre en comptant le motif '''
 def calcul_aretes_communes_avec_coeff_heuristique(graphe_commun, graphe1, graphe2, cle, coeffc, coeffa, coeffn):
     somme_aretes = 0
     for u,v,data in graphe_commun.edges(data=True) :
@@ -54,7 +59,7 @@ def calcul_aretes_communes_avec_coeff_heuristique(graphe_commun, graphe1, graphe
     
     return somme_aretes
        
-
+''' calcul de la similarite du graphe commun a graphe1 et graphe2 passes en parametre en comptant le motif (version toutes aretes all1) '''
 def calcul_sim_aretes_avec_coeff_heuristique(graphe1, graphe2, graphe_commun, cle, coeffc, coeffa, coeffn):
     aretes_1 = calcul_aretes_avec_coeff_heuristique(graphe1, cle, coeffc, coeffa, coeffn)
     aretes_2 = calcul_aretes_avec_coeff_heuristique(graphe2, cle, coeffc, coeffa, coeffn)
@@ -66,6 +71,8 @@ def calcul_sim_aretes_avec_coeff_heuristique(graphe1, graphe2, graphe_commun, cl
     
     return aretes_commun/max(aretes_1, aretes_2)
 
+''' renvoie vrai si le noeud1 du graphe1 et le noeud2 du graphe2 sont de meme type et appartiennent a la meme chaine 
+et faux sinon'''
 def meme_type_meme_chaine(noeud1, noeud2, graphe1, graphe2):
     meme_chaine = False
     for elt in graphe1.nodes[noeud1]["chaine"] :
@@ -76,6 +83,8 @@ def meme_type_meme_chaine(noeud1, noeud2, graphe1, graphe2):
     else :
         return False
 
+''' renvoie vrai si l'un des noeuds du couples_a_chercher se trouve deja en paire avec un autre noeud du graphe
+et faux sinon '''
 def dans_graphe(graphe, couple_a_chercher):
     for noeud in graphe.nodes() :
         #print(noeud)
@@ -124,7 +133,8 @@ def test_compatibilite(graphe_commun, noeud, graphe1, graphe2):
     
     return True
 
-
+''' si l'un des noeuds du couples_a_chercher se trouve deja en paire avec un autre noeud du graphe, renvoie ce noeud
+et faux sinon '''
 def dans_graphe_renvoie_noeud(graphe, couple_a_chercher):
     for noeud in graphe.nodes() :
         #print(noeud)
@@ -173,11 +183,9 @@ def test_compatibilite_renvoie_noeud(graphe_commun, noeud, graphe1, graphe2):
     
     return True
 
-
-
 def liste_meme_type(chaines, graphe, chaines_comp, graphe_comp):
     '''renvoie une liste de dictionnaires dans lequel sont indiques pour chaque sommet du graphe (cle du dictionnaire)
-    les sommets de la meme chaine qui sont de meme type (et aussi -1 pour pouvoir considerer le cas ou le sommet n'est pas superpose) '''
+    les sommets (de graphe_comp) de la meme chaine qui sont de meme type (et aussi -1 pour pouvoir considerer le cas ou le sommet n'est pas superpose) '''
     dico_chaines = [{}]
     for i in range(len(chaines)) :
         if i != 0 :
@@ -200,7 +208,11 @@ def liste_meme_type(chaines, graphe, chaines_comp, graphe_comp):
     return dico_chaines 
 
 
-''' on veut essayer d'etendre la superposition de sommet1 et sommet2 aux sommets voisins '''
+''' on veut essayer d'etendre la superposition de sommet1 et sommet2 aux sommets voisins
+sous_graphe_commun :  le sous-graphe commun deja construit avant cette iteration
+sous_graphe_commun_1 : la partie du graphe1 du sous-commun deja construit
+sous_graphe_commun_2 : la partie du graphe2 du sous-commun deja construit
+'''
 def extension_sous_graphe_dist_1(graphe1, graphe2, sommet1, sommet2, sous_graphe_commun, sous_graphe_commun_1, sous_graphe_commun_2):
     sous_graphe = nx.MultiDiGraph()
     sous_graphe1 = nx.MultiDiGraph()
@@ -364,7 +376,10 @@ def extension_sous_graphe_dist_1(graphe1, graphe2, sommet1, sommet2, sous_graphe
     return sous_graphe, sous_graphe1, sous_graphe2  
 
 
-''' on veut essayer d'etendre la superposition de sommet1 et sommet2 aux sommets voisins '''
+''' on veut essayer d'etendre la superposition de sommet1 et sommet2 aux sommets voisins (distance 1 et 2)
+sous_graphe_commun :  le sous-graphe commun deja construit avant cette iteration
+sous_graphe_commun_1 : la partie du graphe1 du sous-commun deja construit
+sous_graphe_commun_2 : la partie du graphe2 du sous-commun deja construit '''
 def extension_sous_graphe(graphe1, graphe2, sommet1, sommet2, sous_graphe_commun, sous_graphe_commun_1, sous_graphe_commun_2):
     sous_graphe = nx.MultiDiGraph()
     sous_graphe1 = nx.MultiDiGraph()
@@ -775,22 +790,22 @@ def extension_sous_graphe(graphe1, graphe2, sommet1, sommet2, sous_graphe_commun
                                             if meme_type_meme_chaine(voisin_voisin_1, voisin_voisin_2, graphe1, graphe2) and test_compatibilite(sous_graphe_commun, (voisin_voisin_1, voisin_voisin_2), graphe1, graphe2) and not dans_graphe(sous_graphe_commun, (voisin_voisin_1, voisin_voisin_2)) :                                                 
                                                 liste_noeuds_a_voir.append((voisin_voisin_1, voisin_voisin_2))                    
             ## voisins indirects 1 et 2 NEW                                            
-#             for voisin_2 in graphe2.predecessors(noeud[1]) :
-#                 for voisin_voisin_2 in graphe2.predecessors(voisin_2) :
-#                             if voisin_voisin_2 not in sous_graphe_commun_2.nodes() :
-#                                 for voisin_1 in graphe1.predecessors(noeud[0]) :
-#                                     #if voisin_1 not in [2,3,4] :
-#                                         
-#                                         for voisin_voisin_1 in graphe1[voisin_1] :
-#                                             if voisin_voisin_1 not in sous_graphe_commun_1.nodes() :
-#                                                 if (voisin_voisin_1, voisin_voisin_2) not in liste_noeuds_a_voir  and (voisin_voisin_1, voisin_voisin_2) not in [(1,1), (2,2), (3,3), (4,4)] :
-#                                                     if meme_type_meme_chaine(voisin_voisin_1, voisin_voisin_2, graphe1, graphe2) and test_compatibilite(sous_graphe_commun, (voisin_voisin_1, voisin_voisin_2), graphe1, graphe2) and not dans_graphe(sous_graphe_commun, (voisin_voisin_1, voisin_voisin_2)) :                                                 
-#                                                         liste_noeuds_a_voir.append((voisin_voisin_1, voisin_voisin_2))
-#                                         for voisin_voisin_1 in graphe1.predecessors(voisin_1) :
-#                                             if voisin_voisin_1 not in sous_graphe_commun_1.nodes() :
-#                                                 if (voisin_voisin_1, voisin_voisin_2) not in liste_noeuds_a_voir and (voisin_voisin_1, voisin_voisin_2) not in [(1,1), (2,2), (3,3), (4,4)]:
-#                                                     if meme_type_meme_chaine(voisin_voisin_1, voisin_voisin_2, graphe1, graphe2) and test_compatibilite(sous_graphe_commun, (voisin_voisin_1, voisin_voisin_2), graphe1, graphe2) and not dans_graphe(sous_graphe_commun, (voisin_voisin_1, voisin_voisin_2)) :                                                 
-#                                                         liste_noeuds_a_voir.append((voisin_voisin_1, voisin_voisin_2))
+            for voisin_2 in graphe2.predecessors(noeud[1]) :
+                for voisin_voisin_2 in graphe2.predecessors(voisin_2) :
+                            if voisin_voisin_2 not in sous_graphe_commun_2.nodes() :
+                                for voisin_1 in graphe1.predecessors(noeud[0]) :
+                                    #if voisin_1 not in [2,3,4] :
+                                         
+                                        for voisin_voisin_1 in graphe1[voisin_1] :
+                                            if voisin_voisin_1 not in sous_graphe_commun_1.nodes() :
+                                                if (voisin_voisin_1, voisin_voisin_2) not in liste_noeuds_a_voir  and (voisin_voisin_1, voisin_voisin_2) not in [(1,1), (2,2), (3,3), (4,4)] :
+                                                    if meme_type_meme_chaine(voisin_voisin_1, voisin_voisin_2, graphe1, graphe2) and test_compatibilite(sous_graphe_commun, (voisin_voisin_1, voisin_voisin_2), graphe1, graphe2) and not dans_graphe(sous_graphe_commun, (voisin_voisin_1, voisin_voisin_2)) :                                                 
+                                                        liste_noeuds_a_voir.append((voisin_voisin_1, voisin_voisin_2))
+                                        for voisin_voisin_1 in graphe1.predecessors(voisin_1) :
+                                            if voisin_voisin_1 not in sous_graphe_commun_1.nodes() :
+                                                if (voisin_voisin_1, voisin_voisin_2) not in liste_noeuds_a_voir and (voisin_voisin_1, voisin_voisin_2) not in [(1,1), (2,2), (3,3), (4,4)]:
+                                                    if meme_type_meme_chaine(voisin_voisin_1, voisin_voisin_2, graphe1, graphe2) and test_compatibilite(sous_graphe_commun, (voisin_voisin_1, voisin_voisin_2), graphe1, graphe2) and not dans_graphe(sous_graphe_commun, (voisin_voisin_1, voisin_voisin_2)) :                                                 
+                                                        liste_noeuds_a_voir.append((voisin_voisin_1, voisin_voisin_2))
 #                                                         print(voisin_1)
 #                                                         print(voisin_2)
     
@@ -1204,7 +1219,7 @@ def extension_sous_graphe(graphe1, graphe2, sommet1, sommet2, sous_graphe_commun
         return new_sous_graphe, new_sous_graphe1, new_sous_graphe2, liste_noeuds 
     return sous_graphe, sous_graphe1, sous_graphe2, liste_noeuds    
                     
-
+''' renvoie vrai si les deux sous-graphes sont identiques et faux sinon '''
 def sous_graphe_identique(sous_graphe1, sous_graphe2):
     if sous_graphe1.number_of_nodes() != sous_graphe2.number_of_nodes() or sous_graphe1.number_of_edges() != sous_graphe2.number_of_edges() :
         return False
@@ -1234,7 +1249,8 @@ def sous_graphe_identique(sous_graphe1, sous_graphe2):
         return False
     
     return True
-    
+
+''' algo principal '''
 def heuristique(graphe1, graphe2):
     liste_sous_graphe_meilleur = []
     noeuds1_vus = []
@@ -1548,11 +1564,11 @@ if __name__ == '__main__':
                         #break
                 #break
                    
-    with open("liste_sim_diff_algo_heuristique_avec_modif_encore_modif_distance_2_plus_rapide_v6.pickle", 'wb') as fichier_sortie :
+    with open("liste_sim_diff_algo_heuristique_avec_modif_encore_modif_distance_2_plus_rapide_v7.pickle", 'wb') as fichier_sortie :
         mon_pickler = pickle.Pickler(fichier_sortie)
         mon_pickler.dump(liste)        
     
-    with open("dico_graphes_heuristique_v6.pickle", 'wb') as fichier_sortie_2 :
+    with open("dico_graphes_heuristique_v7.pickle", 'wb') as fichier_sortie_2 :
         mon_pickler = pickle.Pickler(fichier_sortie_2)
         mon_pickler.dump(dico_graphes_heuristique) 
                    
