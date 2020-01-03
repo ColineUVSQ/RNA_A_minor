@@ -372,7 +372,7 @@ def draw_structure(G, liste_pos_motif, num, rep, nom_fichier_coord):
 
     edge_labels=dict([((u,v,),d["label"])for u,v,d in G.edges(data=True) if d["label"] != 'B53' and d["label"] != 'CWW' and ((u,v) not in courbes and (v,u) not in courbes)])
     #print(edge_labels)
-    node_labels=dict([(u,(u, d['nt']))for u,d in G.nodes(data=True)])## if d["type"] != None])
+    node_labels=dict([(u,(d['nt']))for u,d in G.nodes(data=True)])## if d["type"] != None])
     #node_labels=dict([(u, (u,d["type"], d["poids"])) if d["type"] != None else (u, (u)) for u,d in G.nodes(data=True) ])
     #node_labels=dict([(u, (u)) for u,d in G.nodes(data=True) ])
     #print(node_labels)
@@ -411,26 +411,68 @@ def draw_structure(G, liste_pos_motif, num, rep, nom_fichier_coord):
     
     
 if __name__ == '__main__':
-    for i in range(8, 11) :
+    for i in range(4, 5) :
         with open("fichiers_pickle/a-minor_test2.pickle", 'rb') as fichier_pickle :
             mon_depickler = pickle.Unpickler(fichier_pickle)
             tab_aminor = mon_depickler.load()
-            with open("grands_graphes_taille_%d.pickle"%i, 'rb') as fichier :
+            with open("grands_graphes_new_data_taille_%d.pickle"%i, 'rb') as fichier :
                 mon_depickler = pickle.Unpickler(fichier)
                 dico_graphes = mon_depickler.load()
                 #     
                 
-                os.makedirs("Graphes_globaux/graphes_sequence/taille_%d"%i, exist_ok=True)
-                for occ in tab_aminor :
-                    num = (occ["num_PDB"], occ["num_ch"], occ["num_motif"],occ["num_occ"])
-                    if num in dico_graphes.keys() :
-    #             for occ in tab_aminor :
-    #                         if occ["num_PDB"] == '4V9F' and occ["num_ch"] == '0' and occ["num_motif"] == 30 and occ["num_occ"] == 4 :
-    #                             num = ('4V9F', '0', 30, 4)
-                                G = dico_graphes[num]
-                                num = (num[0], num[1], str(num[2]), str(num[3]))
+                types_arn = ["23S", "18S", "16S","Ribozyme", "Riboswitch", "SRP", "28S", "25S", "Intron", "arnt_16S_arnm", "arnt_16S"]
+                liste_tout = []
+                with open("resolutions.pickle", 'rb') as fichier_pickle :
+                            mon_depickler = pickle.Unpickler(fichier_pickle)
+                            resolutions = mon_depickler.load()
+                for elt in types_arn :
+                           
+                                   
+                    with open("Nouvelles_donnees/liste_representant_%s.pickle"%elt, 'rb') as fichier_sortie :
+                                    mon_depickler = pickle.Unpickler(fichier_sortie)
+                                    liste_a_garder_noms = mon_depickler.load()    
+                                             
+                                    for element in liste_a_garder_noms :
+                                        if element == ('4w2f', 16) :
+                                            print(element)
+                                            print(elt)
+                                        if resolutions[element[0]] <= 3.0 :
+                                            if element in liste_tout :
+                                                print(element)
+                                                print(elt)
+                                            if element not in liste_tout :
+                                                liste_tout.append(element)
+                         
+                print(liste_tout)
+                
+                os.makedirs("Graphes_globaux/graphes_sequence/taille_%d_new_data"%i, exist_ok=True)
+                with open("all_aminor.pickle", 'rb') as fichier_pickle :
+                    mon_depickler = pickle.Unpickler(fichier_pickle)
+                    all_aminor = mon_depickler.load()
+                    
+                    liste_pb = []
+                    for cle in all_aminor.keys() :
+                        #print(cle)
+                        #if cle == "4ybb" :
+                            print("petit rat")
+                            with open("Graphs/%s.pickle"%cle, 'rb') as fichier_tout :
+                                mon_depickler_graphes = pickle.Unpickler(fichier_tout)
+                                graphe = mon_depickler_graphes.load()
+                                compter_graphe = 1
+                                for graph_motif in all_aminor[cle] :
+                                    if (cle, compter_graphe) in dico_graphes.keys() and (cle, compter_graphe) in liste_tout :
+                                        G = dico_graphes[(cle, compter_graphe)]
+                                        liste_pos_motif = []
+                                        for noeud, data in G[1].nodes(data=True) :
+                                            print(noeud)
+                                            liste_pos_motif.append((data["num_ch"], data["position"][0]))
+                                        
+                                        draw_structure(G[0], liste_pos_motif, cle+"_"+str(compter_graphe), "Graphes_globaux/graphes_sequence/taille_%d_new_data/"%i, "graphe_global_%s_%s_avec_coord.pickle"%(cle, compter_graphe))
+                                        
+                                    
+                                    
+                                    compter_graphe+= 1
                                 
-                                draw_structure(G, occ["a_minor"], num, "Graphes_globaux/graphes_sequence/taille_%d/"%i, "graphe_global_%s_avec_coord.pickle"%('_'.join(num)))
-                                
+                                                    
                     
                 
