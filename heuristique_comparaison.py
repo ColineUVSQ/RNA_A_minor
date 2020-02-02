@@ -1492,8 +1492,8 @@ def maximum_voisin_non_cov(liste_noeuds, graphe):
 #                 print(noeud)
 #                 print(graphe.nodes[noeud]["type"])
 #                 print(graphe.nodes[noeud_maxi]["type"])
-                #if (graphe.nodes[noeud]["type"] in [0,1] and graphe.nodes[noeud_maxi]["type"] in [2,3]) or (abs(graphe.nodes[noeud]["position"][0] - graphe.nodes[graphe.nodes[noeud]["chaine"][0]]["position"][0]) < abs(graphe.nodes[noeud_maxi]["position"][0] - graphe.nodes[graphe.nodes[noeud_maxi]["chaine"][0]]["position"][0])) : 
-                if abs(graphe.nodes[noeud]["position"][0] - graphe.nodes[graphe.nodes[noeud]["chaine"][0]]["position"][0]) < abs(graphe.nodes[noeud_maxi]["position"][0] - graphe.nodes[graphe.nodes[noeud_maxi]["chaine"][0]]["position"][0]) : 
+                if (graphe.nodes[noeud]["type"] in [0,1] and graphe.nodes[noeud_maxi]["type"] in [2,3]) or (abs(graphe.nodes[noeud]["position"][0] - graphe.nodes[graphe.nodes[noeud]["chaine"][0]]["position"][0]) < abs(graphe.nodes[noeud_maxi]["position"][0] - graphe.nodes[graphe.nodes[noeud_maxi]["chaine"][0]]["position"][0])) : 
+                #if abs(graphe.nodes[noeud]["position"][0] - graphe.nodes[graphe.nodes[noeud]["chaine"][0]]["position"][0]) < abs(graphe.nodes[noeud_maxi]["position"][0] - graphe.nodes[graphe.nodes[noeud_maxi]["chaine"][0]]["position"][0]) : 
                 #      print("oh la la")
                     noeud_maxi = noeud 
     return noeud_maxi 
