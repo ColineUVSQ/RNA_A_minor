@@ -1488,9 +1488,13 @@ def maximum_voisin_non_cov(liste_noeuds, graphe):
                 maxi = graphe.nodes[noeud]["nb_vnc"]
                 noeud_maxi = noeud
             elif graphe.nodes[noeud]["nb_vnc"] == maxi :
-                print("houhou")
-                if abs(graphe.nodes[noeud]["position"][0] - graphe.nodes[graphe.nodes[noeud]["chaine"][0]]["position"][0]) < abs(graphe.nodes[noeud_maxi]["position"][0] - graphe.nodes[graphe.nodes[noeud_maxi]["chaine"][0]]["position"][0]) :
-                    noeud_maxi = noeud
+#                 print("houhou")
+#                 print(noeud)
+#                 print(graphe.nodes[noeud]["type"])
+#                 print(graphe.nodes[noeud_maxi]["type"])
+                if (graphe.nodes[noeud]["type"] in [0,1] and graphe.nodes[noeud_maxi]["type"] in [2,3]) or (abs(graphe.nodes[noeud]["position"][0] - graphe.nodes[graphe.nodes[noeud]["chaine"][0]]["position"][0]) < abs(graphe.nodes[noeud_maxi]["position"][0] - graphe.nodes[graphe.nodes[noeud_maxi]["chaine"][0]]["position"][0])) : 
+#                     print("oh la la")
+                    noeud_maxi = noeud 
     return noeud_maxi 
 
 
@@ -1993,6 +1997,9 @@ def new_heuristique(graphe1_deb, graphe2_deb):
                                 nb_nb_1 += 1
                         
                         if nb_nb_1 == 1 :
+                            ## cas ou comp1 est constitue d'une seule chaine
+                            ## dans ce cas, on va creer deux nouvelles composantes : une avec les sommets se trouvant avant le noeud_maxi (sur la sequence) annote 'a'
+                            ## et l'autre avec les sommets se trouvant apres le noeud_maxi (sur la sequence) annotee 'b'
                             new_groupes = []
                             for i in range(len(composantes_1[comp1])) :
                                 if composantes_1[comp1][i] == noeud_maxi :
@@ -2015,8 +2022,10 @@ def new_heuristique(graphe1_deb, graphe2_deb):
                                     for elt in new_groupes[1] :
                                         graphe1.nodes[elt]["num_composante"].append('b')
                                     composantes_1.update({tuple(graphe1.nodes[elt]["num_composante"]) : list(new_groupes[1])})
-                                #del(composantes_1[comp1])
                         else :
+                            ## cas ou comp1 est constitue de plusieurs chaines
+                            ## dans ce cas, on recherche les composantes connexes de comp1 en supprimant le noeud_maxi
+                            ## on les annote avec a ou b ou c etc.. en tant que nouvel element de la liste dans le nom de la composante
                             new_groupes_1 = []
                             for i in range(len(composantes_1[comp1])) :
                                     if graphe1.nodes[composantes_1[comp1][i]]["num_composante"] != -1 : 
@@ -2037,9 +2046,10 @@ def new_heuristique(graphe1_deb, graphe2_deb):
             print(composantes_1)
             print(composantes_2)
         indice_1 += 1
-        
+
+    ''' on construit le sous-graphe commun a partir des attributs marque des noeuds et des aretes des graphes '''        
     sous_graphe_commun = nx.MultiDiGraph()
-    
+
     for noeud, data in graphe1.nodes(data=True) :
 #         print(data)
         if data["marque"] not in [-1,0] :
@@ -2057,6 +2067,9 @@ def new_heuristique(graphe1_deb, graphe2_deb):
 #                             print(u,v)
 #                             print(data)
 #     print("petit rat")
+
+        
+    ''' on ajoute les sommets et les aretes du motif au sous-graphe commun '''
     for i in range(1,6) :
         sous_graphe_commun.add_node((i,i))
         graphe1_deb.nodes[i]["marque"] = i
@@ -2074,7 +2087,8 @@ def new_heuristique(graphe1_deb, graphe2_deb):
     sous_graphe_commun.add_edge((2,2),(4,4), label="B53")
     
     
-    
+    ''' il reste juste a traiter les sommets etant lie au motif directement par des liaisons non cov (qui sont alors isoles du graphe quand on supprime les sommets du motif, ou non s'ils sont lies aussi a d'autres sommets du graphe) '''
+    ## on recherche dans les voisins directs des sommets du motif des correspondances possibles (on pourra tomber sur des liaisons B53 qu'on ajoutera au sous-graphe commun mais ça n'a pas d'importance pour la sim (en fait on ajoutera seulement ceux dans le sens de la sequence selon la facon dont c'est construit ici))
     for i in range(1,6) :
 #         print(i)
         for voisin in graphe1_deb[i] :
@@ -2088,16 +2102,25 @@ def new_heuristique(graphe1_deb, graphe2_deb):
 #                             print(meme_type_meme_chaine(voisin, voisin_2, graphe1_deb, graphe2_deb))
 #                             print(dans_liste(liste_superposes, voisin, voisin_2))
 #                             print(test_compatibilite_new(voisin, voisin_2, graphe1_deb, graphe2_deb, liste_superposes))
+                            ''' comme pour les autres sommets on recherche des voisins :
+                            - de meme type et de meme chaine
+                            - qui ne soit pas deja dans une paire avec un autre sommet
+                            - qui n'introduisent pas d'incompatibilite de sequence dans le sous-graphe commun si on les met en paire
+                            on va ici les ajouter directement au sous-graphe commun
+                            '''
                             if meme_type_meme_chaine(voisin, voisin_2, graphe1_deb, graphe2_deb) and not dans_liste(liste_superposes, voisin, voisin_2) and test_compatibilite_new(voisin, voisin_2, graphe1_deb, graphe2_deb, liste_superposes) :
                                 label1 = graphe1_deb[i][voisin][edge]["label"]
                                 label2 = graphe2_deb[i][voisin_2][edge_2]["label"]
                                 if label1 == label2 :
+                                    ## la aussi on verifie que la paire (voisin_1, voisin_2) n'ait pas deja ete ajoutee au sous-graphe commun 
+                                    ## si c'est le cas, on ne la rajoute pas mais on verifie quand meme les aretes
                                     if graphe1_deb.nodes[voisin]["marque"] in [0, voisin_2] and graphe2_deb.nodes[voisin_2]["marque"] in [0, voisin] :#and (voisin, voisin_2) not in sous_graphe_commun.nodes() :
                                         graphe1_deb.nodes[voisin]["marque"] = voisin_2
                                         graphe2_deb.nodes[voisin_2]["marque"] = voisin
                                         sous_graphe_commun.add_node((voisin, voisin_2))
                                         liste_superposes.add((voisin, voisin_2))
                                     
+                                    ## ajout des aretes en commun si elle n'existe pas deja
                                     if ((i, i), (voisin, voisin_2)) not in sous_graphe_commun.edges() :
                                         sous_graphe_commun.add_edge((i, i), (voisin, voisin_2), label=label1)
                                         if label1 != 'B53' :
@@ -2121,13 +2144,13 @@ def new_heuristique(graphe1_deb, graphe2_deb):
     return sous_graphe_commun
     
 if __name__ == '__main__':
-    with open("fichier_diff.pickle", 'rb') as fichier_diff :
-            mon_depickler = pickle.Unpickler(fichier_diff)
-            liste_pas_pareil = mon_depickler.load()
-            print(liste_pas_pareil)
-            print(len(liste_pas_pareil))
-            exit()
-#     with open(NEW_EXTENSION_PATH_TAILLE+"fichier_5dm6_4_2.pickle", "rb") as fichier_graphe1 :
+#     with open("fichier_diff.pickle", 'rb') as fichier_diff :
+#             mon_depickler = pickle.Unpickler(fichier_diff)
+#             liste_pas_pareil = mon_depickler.load()
+#             print(liste_pas_pareil)
+#             print(len(liste_pas_pareil))
+#             exit()
+# #     with open(NEW_EXTENSION_PATH_TAILLE+"fichier_5dm6_4_2.pickle", "rb") as fichier_graphe1 :
 #         mon_depickler_1 = pickle.Unpickler(fichier_graphe1)
 #         graphe1 = mon_depickler_1.load()
 # #                         
@@ -2388,14 +2411,14 @@ if __name__ == '__main__':
                         print(sim_1)
                         print(sim_2)
                         
-#                         dico_graphe_sim_heuri.update({(liste_a_garder[i], liste_a_garder[j]) : {"graphe" : sous_graphe_commun_1, "sim" : sim_1}})
-#                         dico_graphe_sim_heuri.update({(liste_a_garder[j], liste_a_garder[i]) : {"graphe" : sous_graphe_commun_2, "sim" : sim_2}})
+                        #dico_graphe_sim_heuri.update({(liste_a_garder[i], liste_a_garder[j]) : {"graphe" : sous_graphe_commun_1, "sim" : sim_1}})
+                        #dico_graphe_sim_heuri.update({(liste_a_garder[j], liste_a_garder[i]) : {"graphe" : sous_graphe_commun_2, "sim" : sim_2}})
 
                         
                         if sim_1 >= sim_2 :
-                         
+                          
                             dico_graphe_sim_heuri.update({(liste_a_garder[i], liste_a_garder[j]) : {"graphe" : sous_graphe_commun_1, "sim" : sim_1}})
-                             
+                              
                             if (liste_a_garder[i], liste_a_garder[j]) in dico_graphe_sim.keys():
                                 if sim_1 != dico_graphe_sim[(liste_a_garder[i], liste_a_garder[j])]["sim"] :
                                     liste_pas_pareil.append((liste_a_garder[i], liste_a_garder[j]))
@@ -2404,22 +2427,22 @@ if __name__ == '__main__':
                                     liste_pas_pareil.append((liste_a_garder[i], liste_a_garder[j]))  
                         else :
                             dico_graphe_sim_heuri.update({(liste_a_garder[i], liste_a_garder[j]) : {"graphe" : sous_graphe_commun_2, "sim" : sim_2}})
-                             
+                              
                             if (liste_a_garder[i], liste_a_garder[j]) in dico_graphe_sim.keys():
                                 if sim_2 != dico_graphe_sim[(liste_a_garder[i], liste_a_garder[j])]["sim"] :
                                     liste_pas_pareil.append((liste_a_garder[i], liste_a_garder[j]))
                             else :
                                 if sim_2 != dico_graphe_sim[(liste_a_garder[j], liste_a_garder[i])]["sim"] :
                                     liste_pas_pareil.append((liste_a_garder[i], liste_a_garder[j]))  
-                        
+                         
                         if sim_1 != sim_2 :
                             compter_diff += 1
                                 
                         compteur += 1
-                        
+#                         
         print(len(liste_pas_pareil))
         print(compter_diff)
-        
+         
         with open("fichier_diff.pickle", 'wb') as fichier_diff :
             mon_pickler = pickle.Pickler(fichier_diff)
             mon_pickler.dump(liste_pas_pareil)
