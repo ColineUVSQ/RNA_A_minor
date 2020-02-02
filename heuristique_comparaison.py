@@ -1492,8 +1492,9 @@ def maximum_voisin_non_cov(liste_noeuds, graphe):
 #                 print(noeud)
 #                 print(graphe.nodes[noeud]["type"])
 #                 print(graphe.nodes[noeud_maxi]["type"])
-                if (graphe.nodes[noeud]["type"] in [0,1] and graphe.nodes[noeud_maxi]["type"] in [2,3]) or (abs(graphe.nodes[noeud]["position"][0] - graphe.nodes[graphe.nodes[noeud]["chaine"][0]]["position"][0]) < abs(graphe.nodes[noeud_maxi]["position"][0] - graphe.nodes[graphe.nodes[noeud_maxi]["chaine"][0]]["position"][0])) : 
-#                     print("oh la la")
+                #if (graphe.nodes[noeud]["type"] in [0,1] and graphe.nodes[noeud_maxi]["type"] in [2,3]) or (abs(graphe.nodes[noeud]["position"][0] - graphe.nodes[graphe.nodes[noeud]["chaine"][0]]["position"][0]) < abs(graphe.nodes[noeud_maxi]["position"][0] - graphe.nodes[graphe.nodes[noeud_maxi]["chaine"][0]]["position"][0])) : 
+                if abs(graphe.nodes[noeud]["position"][0] - graphe.nodes[graphe.nodes[noeud]["chaine"][0]]["position"][0]) < abs(graphe.nodes[noeud_maxi]["position"][0] - graphe.nodes[graphe.nodes[noeud_maxi]["chaine"][0]]["position"][0]) : 
+                #      print("oh la la")
                     noeud_maxi = noeud 
     return noeud_maxi 
 
@@ -2144,6 +2145,22 @@ def new_heuristique(graphe1_deb, graphe2_deb):
     return sous_graphe_commun
     
 if __name__ == '__main__':
+    with open("fichier_diff_05a78f7.pickle", 'rb') as fichier_diff :
+            mon_depickler = pickle.Unpickler(fichier_diff)
+            liste_pas_pareil_1 = mon_depickler.load()
+    
+    with open("fichier_diff_0eb8fd1.pickle", 'rb') as fichier_diff :
+            mon_depickler = pickle.Unpickler(fichier_diff)
+            liste_pas_pareil_2 = mon_depickler.load()
+            
+    
+    for elt in liste_pas_pareil_1 :
+        if elt not in liste_pas_pareil_2 :
+            print(elt)
+            
+    #exit()
+    
+    
 #     with open("fichier_diff.pickle", 'rb') as fichier_diff :
 #             mon_depickler = pickle.Unpickler(fichier_diff)
 #             liste_pas_pareil = mon_depickler.load()
@@ -2426,14 +2443,14 @@ if __name__ == '__main__':
                                 if sim_1 != dico_graphe_sim[(liste_a_garder[j], liste_a_garder[i])]["sim"] :
                                     liste_pas_pareil.append((liste_a_garder[i], liste_a_garder[j]))  
                         else :
-                            dico_graphe_sim_heuri.update({(liste_a_garder[i], liste_a_garder[j]) : {"graphe" : sous_graphe_commun_2, "sim" : sim_2}})
+                            dico_graphe_sim_heuri.update({(liste_a_garder[j], liste_a_garder[i]) : {"graphe" : sous_graphe_commun_2, "sim" : sim_2}})
                               
                             if (liste_a_garder[i], liste_a_garder[j]) in dico_graphe_sim.keys():
                                 if sim_2 != dico_graphe_sim[(liste_a_garder[i], liste_a_garder[j])]["sim"] :
-                                    liste_pas_pareil.append((liste_a_garder[i], liste_a_garder[j]))
+                                    liste_pas_pareil.append((liste_a_garder[j], liste_a_garder[i]))
                             else :
                                 if sim_2 != dico_graphe_sim[(liste_a_garder[j], liste_a_garder[i])]["sim"] :
-                                    liste_pas_pareil.append((liste_a_garder[i], liste_a_garder[j]))  
+                                    liste_pas_pareil.append((liste_a_garder[j], liste_a_garder[i]))  
                          
                         if sim_1 != sim_2 :
                             compter_diff += 1
