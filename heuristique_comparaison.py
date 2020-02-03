@@ -1683,12 +1683,14 @@ def new_heuristique(graphe1_deb, graphe2_deb):
                     #print(sommets_possibles)
                     ''' on teste chaque sommet du graphe2 de comp2 compatibles avec noeud_maxi pour trouver le sous-graphe commun le plus grand en étendant aux voisins '''
                     for sommet in sommets_possibles :
+                        
                         ## si le sommet n'est pas deja dans le sous-graphe commun (marque) et si la paire est compatible avec le reste du sous-graphe commun, on peut essayer d'etendre aux voisins
                         if graphe2.nodes[sommet]["marque"] == 0 and test_compatibilite_new(noeud_maxi, sommet, graphe1_deb, graphe2_deb, liste_superposes) :
                             ## sommet compatible
                             
                             liste_superposes_temp = [(noeud_maxi, sommet)] ## les paires de sommets qu'on voudrait ajouter dans le sous-graphe commun en partant de cette premiere paire (sert a traiter les voisins les uns apres les autres)
                             liste_superposes_ar_temp = set() ## les paires d'aretes qu'on voudrait ajouter au sous-graphe commun en partant de cette paire de sommets
+                            liste_deja_teste = []
                             nb_aretes = 0
                             compteur = 0
                             
@@ -1699,81 +1701,104 @@ def new_heuristique(graphe1_deb, graphe2_deb):
                                 noeud1 = liste_superposes_temp[compteur][0]
                                 noeud2 = liste_superposes_temp[compteur][1]
                                 
-                                voisins_1 = set(graphe1[noeud1])
-                                voisins_1.update(graphe1.predecessors(noeud1))
-                                voisins_2 = set(graphe2[noeud2])
-                                voisins_2.update(graphe2.predecessors(noeud2))
+                                ## pas besoin de chercher les voisins pour les noeuds de type artificiel, ils n'en ont qu'un normalement
+                                if graphe1.nodes[noeud1]["type"] != -1 :
                                 
-#                                 print(voisins_1)
-#                                 print(voisins_2)
-                                
-                                for voisin_1 in voisins_1 :
-#                                     print("voisin 1")
-#                                     print(voisin_1)
-                                    for voisin_2 in voisins_2 :
-#                                         print("voisin 2")
-#                                         print(voisin_2)
-    #                                     print(test_compatibilite_new(voisin_1, voisin_2, graphe1_deb, graphe2_deb, liste_superposes))
-    #                                     print(test_compatibilite_new(voisin_1, voisin_2, graphe1_deb, graphe2_deb, liste_superposes_temp))
-    #                                     print(meme_type_meme_chaine(voisin_1, voisin_2, graphe1, graphe2))
-    #                                     print(graphe1.nodes[voisin_1]["marque"])
-    #                                     print(graphe2.nodes[voisin_2]["marque"])
-    #                                     print(liste_superposes_temp)
-    #                                     print(dans_liste(liste_superposes_temp, voisin_1,voisin_2))
-    
-                                        ''' les voisins de la paire courante doivent :
-                                        - ne pas appartenir deja au sous-graphe commun (marque) en paire avec un autre noeud
-                                        - ne pas avoir deja ete traites comme paire courante (s'il y a des boucles dans un des graphes)
-                                        - etre de meme type et appartenir a la meme chaine 
-                                        - ne pas appartenir deja au sous-graphe commun temporaire en paire avec un autre noeud
-                                        - ne pas introduire d'incompatibilite de sequence ni dans le sous-graphe commun temporaire, ni dans le sous-graphe commun final
-                                        et de plus, il faut que les aretes entre le noeud et son voisin soient de même type
-                                        '''
-                                        if graphe1.nodes[voisin_1]["marque"] in [0, voisin_2] and graphe2.nodes[voisin_2]["marque"] in [0, voisin_1] and (voisin_1, voisin_2) not in liste_superposes_temp[:compteur] and meme_type_meme_chaine(voisin_1, voisin_2, graphe1, graphe2) and not dans_liste(liste_superposes_temp, voisin_1, voisin_2) and test_compatibilite_new(voisin_1, voisin_2, graphe1_deb, graphe2_deb, liste_superposes) and test_compatibilite_new(voisin_1, voisin_2, graphe1_deb, graphe2_deb, liste_superposes_temp) :
-#                                             print("tadaa")
-                                            ## cas des aretes ou des arcs orientes dans le sens noeud vers voisin
-                                            if (noeud1, voisin_1) in graphe1.edges() and (noeud2, voisin_2) in graphe2.edges() :
-                                                for edge_1 in graphe1[noeud1][voisin_1] :
-                                                    for edge_2 in graphe2[noeud2][voisin_2] :
-                                                            label1 = graphe1[noeud1][voisin_1][edge_1]["label"]
-                                                            label2 = graphe2[noeud2][voisin_2][edge_2]["label"]
-                                                            
-                                                            if label1 == label2 :
-#                                                                 print(noeud1, voisin_1)
-#                                                                 print(noeud2, voisin_2)
-                                                                ## la paire (voisin_1, voisin_2) peut deja exister dans le sous-graphe commun final ou temporaire, dans ce cas, pas besoin de le rajouter (mais on peut avoir des aretes a rajouter)
-                                                                if (voisin_1, voisin_2) not in liste_superposes_temp and graphe1.nodes[voisin_1]["marque"] != voisin_2 and graphe2.nodes[voisin_2]["marque"] != voisin_1 :
-                                                                    liste_superposes_temp.append((voisin_1, voisin_2))
-                                                                
-                                                                if label1 == 'B53' : ## si c'est une liaison B53, on ne l'ajoute que dans un sens dans la liste des aretes
-                                                                    liste_superposes_ar_temp.add(((noeud1, voisin_1, edge_1), (noeud2, voisin_2, edge_2)))
-                                                                else : ## si ce n'est pas une liaison B53, il faut ajouter l'arete dans les deux sens
-#                                                                     print("roupoulou")
-                                                                    nb_aretes += min(graphe1.nodes[noeud1]["poids"], graphe2.nodes[noeud2]["poids"])
-                                                                    liste_superposes_ar_temp.add(((noeud1, voisin_1, edge_1), (noeud2, voisin_2, edge_2)))
-                                                                    ## mais l'arete dans l'autre sens ne porte peut-etre pas le meme numero (s'il y a plusieurs aretes entre les deux memes sommets)
-                                                                    for edge_1_test in graphe1[voisin_1][noeud1] :
-                                                                        for edge_2_test in graphe2[voisin_2][noeud2] :
-                                                                            if graphe1[voisin_1][noeud1][edge_1_test]["label"] == graphe2[voisin_2][noeud2][edge_2_test]["label"] :
-                                                                                if graphe1[voisin_1][noeud1][edge_1_test]["label"] == label1 or (len(label1) == 3 and graphe1[voisin_1][noeud1][edge_1_test]["label"] == label1[0]+label1[2]+label1[1]) :  
-                                                                                        liste_superposes_ar_temp.add(((voisin_1, noeud1, edge_1_test), (voisin_2, noeud2, edge_2_test)))                              
-                                            ## cas des arcs dans le sens voisin vers noeud                            
-                                            elif (voisin_1, noeud1) in graphe1.edges() and (voisin_2, noeud2) in graphe2.edges():
-                                                for edge_1 in graphe1[voisin_1][noeud1] :
-                                                    for edge_2 in graphe2[voisin_2][noeud2] :
-                                                            label1 = graphe1[voisin_1][noeud1][edge_1]["label"]
-                                                            label2 = graphe2[voisin_2][noeud2][edge_2]["label"]
-                                                            
-                                                            ## traitement idem qu'au-dessus
-                                                            if label1 == label2 :
-                                                                if label1 != 'B53' :
-                                                                    print("bizarre, pas b53...")
-                                                                    exit()
-                                                                    
-                                                                if (voisin_1, voisin_2) not in liste_superposes_temp and graphe1.nodes[voisin_1]["marque"] != voisin_2 and graphe2.nodes[voisin_2]["marque"] != voisin_1 :
-                                                                    liste_superposes_temp.append((voisin_1, voisin_2))
+                                    voisins_1 = set(graphe1[noeud1])
+                                    voisins_1.update(graphe1.predecessors(noeud1))
+                                    voisins_2 = set(graphe2[noeud2])
+                                    voisins_2.update(graphe2.predecessors(noeud2))
+                                    
+    #                                 print(voisins_1)
+    #                                 print(voisins_2)
+                                    nb_voisins_trouves = 0
+                                    for voisin_1 in voisins_1 :
+    #                                     print("voisin 1")
+    #                                     print(voisin_1)
+                                        for voisin_2 in voisins_2 :
+    #                                         print("voisin 2")
+    #                                         print(voisin_2)
+        #                                     print(test_compatibilite_new(voisin_1, voisin_2, graphe1_deb, graphe2_deb, liste_superposes))
+        #                                     print(test_compatibilite_new(voisin_1, voisin_2, graphe1_deb, graphe2_deb, liste_superposes_temp))
+        #                                     print(meme_type_meme_chaine(voisin_1, voisin_2, graphe1, graphe2))
+        #                                     print(graphe1.nodes[voisin_1]["marque"])
+        #                                     print(graphe2.nodes[voisin_2]["marque"])
+        #                                     print(liste_superposes_temp)
+        #                                     print(dans_liste(liste_superposes_temp, voisin_1,voisin_2))
         
-                                                                liste_superposes_ar_temp.add(((voisin_1, noeud1, edge_1), (voisin_2, noeud2, edge_2)))
+                                            ''' les voisins de la paire courante doivent :
+                                            - ne pas appartenir deja au sous-graphe commun (marque) en paire avec un autre noeud
+                                            - ne pas avoir deja ete traites comme paire courante (s'il y a des boucles dans un des graphes)
+                                            - etre de meme type et appartenir a la meme chaine 
+                                            - ne pas appartenir deja au sous-graphe commun temporaire en paire avec un autre noeud
+                                            - ne pas introduire d'incompatibilite de sequence ni dans le sous-graphe commun temporaire, ni dans le sous-graphe commun final
+                                            et de plus, il faut que les aretes entre le noeud et son voisin soient de même type
+                                            '''
+                                            if graphe1.nodes[voisin_1]["marque"] in [0, voisin_2] and graphe2.nodes[voisin_2]["marque"] in [0, voisin_1] and (voisin_1, voisin_2) not in liste_superposes_temp[:compteur] and (voisin_1, voisin_2) not in liste_deja_teste and meme_type_meme_chaine(voisin_1, voisin_2, graphe1, graphe2) and not dans_liste(liste_superposes_temp, voisin_1, voisin_2) and test_compatibilite_new(voisin_1, voisin_2, graphe1_deb, graphe2_deb, liste_superposes) and test_compatibilite_new(voisin_1, voisin_2, graphe1_deb, graphe2_deb, liste_superposes_temp) :
+    #                                             print("tadaa")
+                                                ## cas des aretes ou des arcs orientes dans le sens noeud vers voisin
+                                                if (noeud1, voisin_1) in graphe1.edges() and (noeud2, voisin_2) in graphe2.edges() :
+                                                    for edge_1 in graphe1[noeud1][voisin_1] :
+                                                        for edge_2 in graphe2[noeud2][voisin_2] :
+                                                                label1 = graphe1[noeud1][voisin_1][edge_1]["label"]
+                                                                label2 = graphe2[noeud2][voisin_2][edge_2]["label"]
+                                                                
+                                                                if label1 == label2 :
+                                                                    
+    #                                                                 print(noeud1, voisin_1)
+    #                                                                 print(noeud2, voisin_2)
+                                                                    ## la paire (voisin_1, voisin_2) peut deja exister dans le sous-graphe commun final ou temporaire, dans ce cas, pas besoin de le rajouter (mais on peut avoir des aretes a rajouter)
+                                                                    if (voisin_1, voisin_2) not in liste_superposes_temp and graphe1.nodes[voisin_1]["marque"] != voisin_2 and graphe2.nodes[voisin_2]["marque"] != voisin_1 :
+                                                                        liste_superposes_temp.append((voisin_1, voisin_2))
+                                                                    
+                                                                    if label1 == 'B53' : ## si c'est une liaison B53, on ne l'ajoute que dans un sens dans la liste des aretes
+                                                                        liste_superposes_ar_temp.add(((noeud1, voisin_1, edge_1), (noeud2, voisin_2, edge_2)))
+                                                                    else : ## si ce n'est pas une liaison B53, il faut ajouter l'arete dans les deux sens
+    #                                                                     print("roupoulou")
+                                                                        nb_voisins_trouves += 1
+                                                                        nb_aretes += min(graphe1.nodes[noeud1]["poids"], graphe2.nodes[noeud2]["poids"])
+                                                                        liste_superposes_ar_temp.add(((noeud1, voisin_1, edge_1), (noeud2, voisin_2, edge_2)))
+                                                                        ## mais l'arete dans l'autre sens ne porte peut-etre pas le meme numero (s'il y a plusieurs aretes entre les deux memes sommets)
+                                                                        for edge_1_test in graphe1[voisin_1][noeud1] :
+                                                                            for edge_2_test in graphe2[voisin_2][noeud2] :
+                                                                                if graphe1[voisin_1][noeud1][edge_1_test]["label"] == graphe2[voisin_2][noeud2][edge_2_test]["label"] :
+                                                                                    if graphe1[voisin_1][noeud1][edge_1_test]["label"] == label1 or (len(label1) == 3 and graphe1[voisin_1][noeud1][edge_1_test]["label"] == label1[0]+label1[2]+label1[1]) :  
+                                                                                            liste_superposes_ar_temp.add(((voisin_1, noeud1, edge_1_test), (voisin_2, noeud2, edge_2_test)))                              
+                                                ## cas des arcs dans le sens voisin vers noeud                            
+                                                elif (voisin_1, noeud1) in graphe1.edges() and (voisin_2, noeud2) in graphe2.edges():
+                                                    for edge_1 in graphe1[voisin_1][noeud1] :
+                                                        for edge_2 in graphe2[voisin_2][noeud2] :
+                                                                label1 = graphe1[voisin_1][noeud1][edge_1]["label"]
+                                                                label2 = graphe2[voisin_2][noeud2][edge_2]["label"]
+                                                                
+                                                                ## traitement idem qu'au-dessus
+                                                                if label1 == label2 :
+                                                                    if label1 != 'B53' :
+                                                                        print("bizarre, pas b53...")
+                                                                        exit()
+                                                                        
+                                                                    if (voisin_1, voisin_2) not in liste_superposes_temp and graphe1.nodes[voisin_1]["marque"] != voisin_2 and graphe2.nodes[voisin_2]["marque"] != voisin_1 :
+                                                                        liste_superposes_temp.append((voisin_1, voisin_2))
+            
+                                                                    liste_superposes_ar_temp.add(((voisin_1, noeud1, edge_1), (voisin_2, noeud2, edge_2)))
+                                    if nb_voisins_trouves == 0 and graphe1.nodes[noeud1]["type"] in [2,3] :
+#                                         print("roupoulou")
+#                                         print((noeud1, noeud2))
+#                                         print(liste_superposes_temp)
+#                                         print(liste_superposes_ar_temp)
+                                        liste_deja_teste.append((noeud1, noeud2))
+                                        liste_superposes_temp.remove((noeud1, noeud2))
+                                        a_enlever = []
+                                        for arete in liste_superposes_ar_temp :
+                                            if (arete[0][0] == noeud1 or arete[0][1] == noeud1) and (arete[1][0] == noeud2 or arete[1][1] == noeud2) :
+                                                a_enlever.append(arete)
+                                        for elt in a_enlever :
+                                            liste_superposes_ar_temp.remove(elt)
+                                            
+#                                         print(liste_superposes_temp)
+#                                         print(liste_superposes_ar_temp)
+                                        compteur -= 1  
+                                    #exit()
                                 compteur += 1    
 #                             print("et la")
 #                             print(nb_aretes) 
@@ -2145,17 +2170,17 @@ def new_heuristique(graphe1_deb, graphe2_deb):
     return sous_graphe_commun
     
 if __name__ == '__main__':
-    with open("fichier_diff_05a78f7.pickle", 'rb') as fichier_diff :
+    with open("fichier_diff_de89e8b.pickle", 'rb') as fichier_diff :
             mon_depickler = pickle.Unpickler(fichier_diff)
             liste_pas_pareil_1 = mon_depickler.load()
     
-    with open("fichier_diff_0eb8fd1.pickle", 'rb') as fichier_diff :
+    with open("fichier_diff_426d48b.pickle", 'rb') as fichier_diff :
             mon_depickler = pickle.Unpickler(fichier_diff)
             liste_pas_pareil_2 = mon_depickler.load()
             
     
-    for elt in liste_pas_pareil_1 :
-        if elt not in liste_pas_pareil_2 :
+    for elt in liste_pas_pareil_2 :
+        if elt not in liste_pas_pareil_1 :
             print(elt)
             
     #exit()
@@ -2397,9 +2422,9 @@ if __name__ == '__main__':
         liste_pas_pareil = []
         compter_diff = 0
         for i in range(len(liste_a_garder)) :
-            #if liste_a_garder[i] == ('5dm6',8) :
+            #if liste_a_garder[i] == ('5dm6',3) :
                 for j in range(i+1, len(liste_a_garder)) :
-                    #if liste_a_garder[j] == ('3cc2', 22) :
+                    #if liste_a_garder[j] == ('4ybb', 36) :
                         print(compteur)
                         with open(NEW_EXTENSION_PATH_TAILLE+"fichier_%s_%s_2.pickle"%(liste_a_garder[i][0], liste_a_garder[i][1]), "rb") as fichier_graphe1 :
                             mon_depickler_1 = pickle.Unpickler(fichier_graphe1)
@@ -2433,9 +2458,9 @@ if __name__ == '__main__':
 
                         
                         if sim_1 >= sim_2 :
-                          
+                           
                             dico_graphe_sim_heuri.update({(liste_a_garder[i], liste_a_garder[j]) : {"graphe" : sous_graphe_commun_1, "sim" : sim_1}})
-                              
+                               
                             if (liste_a_garder[i], liste_a_garder[j]) in dico_graphe_sim.keys():
                                 if sim_1 != dico_graphe_sim[(liste_a_garder[i], liste_a_garder[j])]["sim"] :
                                     liste_pas_pareil.append((liste_a_garder[i], liste_a_garder[j]))
@@ -2444,14 +2469,14 @@ if __name__ == '__main__':
                                     liste_pas_pareil.append((liste_a_garder[i], liste_a_garder[j]))  
                         else :
                             dico_graphe_sim_heuri.update({(liste_a_garder[j], liste_a_garder[i]) : {"graphe" : sous_graphe_commun_2, "sim" : sim_2}})
-                              
+                               
                             if (liste_a_garder[i], liste_a_garder[j]) in dico_graphe_sim.keys():
                                 if sim_2 != dico_graphe_sim[(liste_a_garder[i], liste_a_garder[j])]["sim"] :
                                     liste_pas_pareil.append((liste_a_garder[j], liste_a_garder[i]))
                             else :
                                 if sim_2 != dico_graphe_sim[(liste_a_garder[j], liste_a_garder[i])]["sim"] :
                                     liste_pas_pareil.append((liste_a_garder[j], liste_a_garder[i]))  
-                         
+                          
                         if sim_1 != sim_2 :
                             compter_diff += 1
                                 
@@ -2463,8 +2488,8 @@ if __name__ == '__main__':
         with open("fichier_diff.pickle", 'wb') as fichier_diff :
             mon_pickler = pickle.Pickler(fichier_diff)
             mon_pickler.dump(liste_pas_pareil)
-#         
-        print(liste_pas_pareil)
+# #         
+#         print(liste_pas_pareil)
         with open("dico_algo_heuristique_new_v.pickle", 'wb') as fichier_sortie :
             mon_pickler = pickle.Pickler(fichier_sortie)
             mon_pickler.dump(dico_graphe_sim_heuri)
