@@ -6,17 +6,20 @@ Created on 29 août 2019
 Nouvel algo pour comparer les graphes d'extension deux à deux (Methode Branch and Cut)
 (version toutes donnees PDB)
 '''
-
+import recup_data.clustering_perez
+liste_pbs = [('6az1', 5), ('6ek0', 9), ('4wqf', 14), ('6ek0', 1), ('6ek0', 8), ('6ek0', 9), ('6az1', 4), ('5wdt', 11), ('6gyv', 1), ('4y4o', 18), ('5dm6', 6), ('4ybb', 27), ('5ibb', 34), ('1vqo', 21), ('5afi', 15), ('6h4n', 23), ('4v9d', 41), ('1k8a', 8), ('4u4r', 28), ('4u3u', 5), ('6ek0', 11), ('2nz4', 3), ('4ena', 1), ('3t1y', 2)]
 import networkx as nx
 import os
 import pickle
 import json
 import time
+import copy
 import matplotlib.pyplot as plt
 from recup_data.constantes import EXTENSION_PATH, EXTENSION_PATH_TAILLE,\
     NEW_EXTENSION_PATH_TAILLE, deux_chaines, PATH_MMCIF
 import multiprocessing
 import csv
+import seaborn as sns
 
 ''' Partie liee a l'algo'''
 
@@ -175,6 +178,8 @@ def test_compatibilite(graphe_commun, noeud, graphe1, graphe2):
             noeud2 = list(graphe_commun.nodes())[i]
             meme_chaine = False
             
+            
+            
             modele = graphe1.nodes[1]["position"][0]
             
             for elt in graphe1.nodes[noeud[0]]["chaine"] :
@@ -193,6 +198,7 @@ def test_compatibilite(graphe_commun, noeud, graphe1, graphe2):
 #             if noeud == (1033,1034) :
 #                 print(graphe1.nodes[noeud[0]]["chaine"])
             if noeud != noeud2 and meme_chaine and graphe1.nodes[noeud[0]]["type"] not in [None,-1] and graphe1.nodes[noeud2[0]]["type"] not in [None,-1] and noeud[0] not in [1,2,3,4,5] and noeud2[0] not in [1,2,3,4,5]:
+                
 #                 print("test compa")
 #                 print(graphe1.nodes[noeud[0]]["position"])
 #                 print(graphe1.nodes[noeud2[0]]["position"])
@@ -200,6 +206,7 @@ def test_compatibilite(graphe_commun, noeud, graphe1, graphe2):
 #                 print(graphe1.nodes[noeud[0]]["position"])
 #                 print(graphe1.nodes[noeud2[0]]["position"])
                 if (graphe1.nodes[noeud[0]]["position"][0] < graphe1.nodes[noeud2[0]]["position"][0] and graphe2.nodes[noeud[1]]["position"][0] > graphe2.nodes[noeud2[1]]["position"][0]) or (graphe1.nodes[noeud[0]]["position"][0] > graphe1.nodes[noeud2[0]]["position"][0] and graphe2.nodes[noeud[1]]["position"][0] < graphe2.nodes[noeud2[1]]["position"][0]) :
+                    
 #                     print("test compa")
 #                     print(noeud)
 #                     print(chaine_noeud11)
@@ -207,8 +214,12 @@ def test_compatibilite(graphe_commun, noeud, graphe1, graphe2):
 #                     print(distance_entre_noeuds_meme_chaine(graphe1, chaine_noeud11, noeud[0]))
 #                     print(distance_entre_noeuds_meme_chaine(graphe1, chaine_noeud21, noeud2[0]))
                     #if (distance_entre_noeuds_meme_chaine(graphe1, chaine_noeud11, noeud[0]) < distance_entre_noeuds_meme_chaine(graphe1, chaine_noeud21, noeud2[0]) and distance_entre_noeuds_meme_chaine(graphe2, chaine_noeud12, noeud[1]) > distance_entre_noeuds_meme_chaine(graphe2, chaine_noeud22, noeud2[1])) or  (distance_entre_noeuds_meme_chaine(graphe1, chaine_noeud11, noeud[0]) > distance_entre_noeuds_meme_chaine(graphe1, chaine_noeud21, noeud2[0]) and distance_entre_noeuds_meme_chaine(graphe2, chaine_noeud12, noeud[1]) < distance_entre_noeuds_meme_chaine(graphe2, chaine_noeud22, noeud2[1])) :
-                    if (abs(noeud[0]-modele) < abs(noeud2[0]-modele) and abs(noeud[1] - modele) > abs(noeud2[1]-modele)) or (abs(noeud[0]-modele) > abs(noeud2[0]-modele) and abs(noeud[1] - modele) < abs(noeud2[1]-modele)) :
-                        return False
+#                     if noeud == (17,18) and noeud2 == (14,15) :
+#                             print("tout petit rat")
+#                             print(noeud)
+                    #if (abs(noeud[0]-modele) < abs(noeud2[0]-modele) and abs(noeud[1] - modele) > abs(noeud2[1]-modele)) or (abs(noeud[0]-modele) > abs(noeud2[0]-modele) and abs(noeud[1] - modele) < abs(noeud2[1]-modele)) :
+                        
+                    return False
     
     return True
 
@@ -356,7 +367,10 @@ def algo_principal(graphe1, graphe2, chaines_1, dico_chaines_1, graphe_commun_te
 #             print(test_compatibilite(graphe_commun_temp, (x,y), graphe1, graphe2))
 #             print(liste_etapes)
 #             print(etape)
-        
+#         if x == 17 and y == 18 :
+#             print("gros tas")
+#             print(graphe_commun_temp.nodes.data())
+#             print(test_compatibilite(graphe_commun_temp, (x,y), graphe1, graphe2))
         if y == -1 or (not dans_graphe(graphe_commun_temp, (x,y)) and test_compatibilite(graphe_commun_temp, (x,y), graphe1, graphe2)) :
 #             if x == 15 and y == 12 :
 #                 print(x,y)
@@ -420,13 +434,13 @@ def algo_principal(graphe1, graphe2, chaines_1, dico_chaines_1, graphe_commun_te
                                                                     deja_vu = True
                                  
                                                         if ((x,y), (voisin1, voisin2)) not in graphe_commun_temp.edges() or not deja_vu:
-                                                            graphe_commun_temp.add_edge((x,y), (voisin1, voisin2), label=label1)
+                                                            graphe_commun_temp.add_edge((x,y), (voisin1, voisin2), label=label1, motif=False)
                                                             if len(label1) == 3 :
-                                                                graphe_commun_temp.add_edge((voisin1, voisin2), (x,y), label=label1[0]+label1[2]+label1[1])
+                                                                graphe_commun_temp.add_edge((voisin1, voisin2), (x,y), label=label1[0]+label1[2]+label1[1], motif=False)
                                                             elif len(label1) == 4 :
-                                                                graphe_commun_temp.add_edge((voisin1, voisin2), (x,y), label=label1[0]+label1[2]+label1[1]+label1[3:])
+                                                                graphe_commun_temp.add_edge((voisin1, voisin2), (x,y), label=label1[0]+label1[2]+label1[1]+label1[3:], motif=False)
                                                             else : ## aretes artificielles
-                                                                graphe_commun_temp.add_edge((voisin1, voisin2), (x,y), label=label1)
+                                                                graphe_commun_temp.add_edge((voisin1, voisin2), (x,y), label=label1, motif=False)
                                                                 
                                                             if taille_liste_etapes == len(liste_etapes) :
                                                                 liste_etapes.append({"aretes" :[((x,y),(voisin1, voisin2)), ((voisin1, voisin2), (x,y))]})
@@ -435,86 +449,7 @@ def algo_principal(graphe1, graphe2, chaines_1, dico_chaines_1, graphe_commun_te
                                                                     liste_etapes[len(liste_etapes)-1].update({"aretes" :[((x,y),(voisin1, voisin2)), ((voisin1, voisin2), (x,y))]})
                                                                 else :
                                                                     liste_etapes[len(liste_etapes)-1]["aretes"].append(((x,y),(voisin1, voisin2)))
-                                                                    liste_etapes[len(liste_etapes)-1]["aretes"].append(((voisin1, voisin2), (x,y)))
-    #                                                     if (x,y) == (12,12) :
-    #                                                         print("tout petit rat")
-    #                                                         print(voisin1)
-    #                                                         print(voisin2)
-    #                                                         print(graphe_commun_temp.edges.data())
-    #                                                         
-    #                                                     if (x,y) == (13,13) :
-    #                                                         print("encore plus petit rat")
-    #                                                         print(voisin1)
-    #                                                         print(voisin2)
-    #                                                         print(graphe_commun_temp.edges.data())
-#                                                     else :
-#                                                         if label1 in voisins.keys() :
-#                                                             voisins[label1].append((voisin1, voisin2, edge1, edge2))
-#                                                         else :
-#                                                             voisins.update({label1 : [(voisin1, voisin2, edge1, edge2)]})
-                                                
-                ## on regarde si les voisins mis en attente doivent etre ajoutes (on les ajoute si on a trouve aucun voisin de meme liaison qui soit False)
-#                 for voisin_label in voisins.keys() :
-#                     trouve = False
-#                     for v_ajoutes in graphe_commun_temp[(x,y)] :
-#                         for edge in graphe_commun_temp[(x,y)][v_ajoutes] :
-#                             if graphe_commun_temp[(x,y)][v_ajoutes][edge]["label"] == voisin_label :
-#                                 trouve = True
-#                         if trouve :
-#                             break
-#                     if not trouve :
-#                         
-#                         compter_max_false = -1
-#                         elt_max_false = -1
-#                         for elt in voisins[voisin_label] :
-#                             compter = 0
-#                             if graphe1[x][elt[0]][elt[2]]["near"] == False :
-#                                 compter += 1
-#                             if graphe2[y][elt[1]][elt[3]]["near"] == False :
-#                                 compter += 1
-#                             
-#                             if compter > compter_max_false :
-#                                 compter_max_false = compter
-#                                 elt_max_false = elt
-#                         
-#                         voisin1 = elt_max_false[0]
-#                         voisin2 = elt_max_false[1]
-#                         label1 = voisin_label
-#                         if (voisin1, voisin2) not in graphe_commun_temp.nodes() :
-#                             if taille_liste_etapes == len(liste_etapes) :
-#                                 liste_etapes.append({"noeuds" :[(voisin1, voisin2)]})
-#                             else :
-#                                 if "noeuds" not in liste_etapes[len(liste_etapes)-1].keys() :
-#                                     liste_etapes[len(liste_etapes)-1].update({"noeuds" :[(voisin1, voisin2)]})
-#                                 else :
-#                                     liste_etapes[len(liste_etapes)-1]["noeuds"].append((voisin1, voisin2))
-#                             
-#                             graphe_commun_temp.add_node((voisin1, voisin2))
-#                             
-#                         if ((x,y), (voisin1, voisin2)) in graphe_commun_temp.edges() :
-#                             deja_vu = False
-#                             for edge in graphe_commun_temp[(x,y)][(voisin1,voisin2)] :
-#                                 if graphe_commun_temp[(x,y)][(voisin1,voisin2)][edge]["label"] == label1 :
-#                                     deja_vu = True
-#  
-#                         if ((x,y), (voisin1, voisin2)) not in graphe_commun_temp.edges() or not deja_vu:
-#                             graphe_commun_temp.add_edge((x,y), (voisin1, voisin2), label=label1)
-#                             if len(label1) == 3 :
-#                                 graphe_commun_temp.add_edge((voisin1, voisin2), (x,y), label=label1[0]+label1[2]+label1[1])
-#                             elif len(label1) == 4 :
-#                                 graphe_commun_temp.add_edge((voisin1, voisin2), (x,y), label=label1[0]+label1[2]+label1[1]+label1[3:])
-#                             else : ## aretes artificielles
-#                                 graphe_commun_temp.add_edge((voisin1, voisin2), (x,y), label=label1)
-#                                 
-#                             if taille_liste_etapes == len(liste_etapes) :
-#                                 liste_etapes.append({"aretes" :[((x,y),(voisin1, voisin2)), ((voisin1, voisin2), (x,y))]})
-#                             else :
-#                                 if "aretes" not in liste_etapes[len(liste_etapes)-1].keys() :
-#                                     liste_etapes[len(liste_etapes)-1].update({"aretes" :[((x,y),(voisin1, voisin2)), ((voisin1, voisin2), (x,y))]})
-#                                 else :
-#                                     liste_etapes[len(liste_etapes)-1]["aretes"].append(((x,y),(voisin1, voisin2)))
-#                                     liste_etapes[len(liste_etapes)-1]["aretes"].append(((voisin1, voisin2), (x,y)))
-
+                                                                    liste_etapes[len(liste_etapes)-1]["aretes"].append(((voisin1, voisin2), (x,y))) 
                 
             ## si c'est la fin d'un tour on calcule la sim et on compare au max
             
@@ -573,6 +508,8 @@ def algo_principal(graphe1, graphe2, chaines_1, dico_chaines_1, graphe_commun_te
                         
 #                 print("pile courante")
 #                 print(pile)
+
+
 
 def comparaison(graphe1, graphe2, cle):
     ''' execute la recherche de graphe commun max entre les deux graphes '''
@@ -673,14 +610,14 @@ def comparaison(graphe1, graphe2, cle):
     
     for i in range(1,6) :
         graphe_commun_temp.add_node((i,i))
-    graphe_commun_temp.add_edge((1,1),(2,2), label="CSS")
-    graphe_commun_temp.add_edge((2,2),(1,1), label="CSS")
-    graphe_commun_temp.add_edge((1,1),(5,5), label="TSS")
-    graphe_commun_temp.add_edge((5,5),(1,1), label="TSS")
-    graphe_commun_temp.add_edge((2,2),(5,5), label="CWW")
-    graphe_commun_temp.add_edge((5,5),(2,2), label="CWW")
-    graphe_commun_temp.add_edge((3,3),(4,4), label="CSS")
-    graphe_commun_temp.add_edge((4,4),(3,3), label="CSS")
+    graphe_commun_temp.add_edge((1,1),(2,2), label="CSS", motif=True)
+    graphe_commun_temp.add_edge((2,2),(1,1), label="CSS", motif=True)
+    graphe_commun_temp.add_edge((1,1),(5,5), label="TSS", motif=True)
+    graphe_commun_temp.add_edge((5,5),(1,1), label="TSS", motif=True)
+    graphe_commun_temp.add_edge((2,2),(5,5), label="CWW", motif=True)
+    graphe_commun_temp.add_edge((5,5),(2,2), label="CWW", motif=True)
+    graphe_commun_temp.add_edge((3,3),(4,4), label="CSS", motif=True)
+    graphe_commun_temp.add_edge((4,4),(3,3), label="CSS", motif=True)
            
     #print(chaines_reliees_tot)
     for elt in chaines_a_mettre_ensemble :
@@ -715,12 +652,241 @@ def comparaison(graphe1, graphe2, cle):
                     num_voisin2_b53 = voisin
         
         if num_voisin1_b53 != -1 and num_voisin2_b53 != -1 and (num_voisin1_b53, num_voisin2_b53) in graphe_commun_max.nodes() :
-            graphe_commun_max.add_edge(noeud, (num_voisin1_b53, num_voisin2_b53), label='B53')
+            graphe_commun_max.add_edge(noeud, (num_voisin1_b53, num_voisin2_b53), label='B53', motif=False)
             
-            
-    return graphe_commun_max, sim_max
+    new_sim_max = verif_sim_branche(graphe_commun_max, sim_max, chaines_1, chaines_2, graphe1, graphe2, 1,1,1, 0.4)
+    print(sim_max)
+    if new_sim_max != sim_max :
+        return graphe_commun_max, new_sim_max, True
+    else :
+        return graphe_commun_max, new_sim_max, False
+
+def verif_sim_branche(graphe_commun_max, sim_max, chaines_1, chaines_2, graphe1, graphe2, coeffc, coeffa, coeffn, seuil):
+    
+    
+    compteur = 0
+    for chaine in chaines_1 :
+        poids_aretes_commun = 0
+        poids_aretes_1 = 0
+        poids_aretes_2 = 0
+        for u,v, data in graphe_commun_max.edges(data=True) :
+#             print(u,v)
+#             print(data["motif"])
+            if ((u[0] in chaine and u[1] in chaines_2[compteur]) or (v[0] in chaine and v[1] in chaines_2[compteur])) and data["motif"] == False :
+                #print(u,v)
+                if data["label"] != 'B53' :
+                    if data["label"] == '0' :
+                        if coeffa == 1 :
+                            poids_aretes_commun += min(graphe1.nodes[u[0]]["poids"], graphe2.nodes[u[1]]["poids"]) 
+                    elif graphe1.nodes[u[0]]["type"] == 1 and graphe1.nodes[v[0]]["type"] == 1 :
+                        if coeffc == 1 :
+                            poids_aretes_commun += min(graphe1.nodes[u[0]]["poids"], graphe2.nodes[u[1]]["poids"]) 
+                    else :
+                        if coeffn == 1 :
+                            poids_aretes_commun += min(graphe1.nodes[u[0]]["poids"], graphe2.nodes[u[1]]["poids"])
+        
+        for u,v, data in graphe1.edges(data=True) :
+            if u in chaine or v in chaine :
+                if (u,v,data["label"]) not in [(1,2,'CSS'), (2,1,'CSS'), (1,5,'TSS'), (5,1,'TSS'), (2,5,'CWW'), (5,2, 'CWW'), (3,4,'CSS'), (4,3,'CSS')] :
+                    if data["label"] != 'B53' :
+                        if data["label"] == '0' :
+                            if coeffa == 1 :
+                                poids_aretes_1 += graphe1.nodes[u]["poids"]
+                                
+                        elif graphe1.nodes[u]["type"] == 1 and graphe1.nodes[v]["type"] == 1 :
+                            if coeffc == 1 :
+                                poids_aretes_1 += graphe1.nodes[u]["poids"]
+                                
+                        else :
+                            if coeffn == 1 :
+                                poids_aretes_1 += graphe1.nodes[u]["poids"]
+        
+        for u,v, data in graphe2.edges(data=True) :
+            if u in chaines_2[compteur] or v in chaines_2[compteur] :
+                if (u,v,data["label"]) not in [(1,2,'CSS'), (2,1,'CSS'), (1,5,'TSS'), (5,1,'TSS'), (2,5,'CWW'), (5,2, 'CWW'), (3,4,'CSS'), (4,3,'CSS')] :
+                    if data["label"] != 'B53' :
+                        if data["label"] == '0' :
+                            if coeffa == 1 :
+                                poids_aretes_2 += graphe2.nodes[u]["poids"]
+                                
+                        elif graphe2.nodes[u]["type"] == 1 and graphe2.nodes[v]["type"] == 1 :
+                            if coeffc == 1 :
+                                poids_aretes_2 += graphe2.nodes[u]["poids"]
+                                
+                        else :
+                            if coeffn == 1 :
+                                poids_aretes_2 += graphe2.nodes[u]["poids"]
+        print(poids_aretes_commun)
+        print(poids_aretes_1)
+        print(poids_aretes_2)                       
+        sim = (poids_aretes_commun)/max(poids_aretes_1, poids_aretes_2)
+        print(sim)
+        if sim <= seuil :
+            sim_max = 0.75*sim_max
+
+        compteur += 1
+    return sim_max
+
+
+                
 
 ''' Obtention de resultats '''
+
+def nb_liaison_near(graphe):
+    nb_near = 0
+    for u,v, data in graphe.edges(data=True) :   
+        if data["near"] == True and (u,v) not in [(1,2), (2,1), (3,4), (4,3), (1,5), (5,1)] :
+            nb_near += 1
+            
+    return int(nb_near/2)
+
+def enum_graphe_liaison_near(graphe):
+    liste_liaison_near = []
+    liste_aretes = []
+    for u,v, key, data in graphe.edges(keys=True, data=True) :
+        if data["near"] and (u,v) not in liste_aretes and (u,v) not in [(1,2), (2,1), (3,4), (4,3), (1,5), (5,1)]:
+            if (v,u) in graphe.edges() :
+                for edge in graphe[v][u] :
+                    if len(data["label"]) == 3 : 
+                        label_inv = data["label"][0] + data["label"][2] + data["label"][1]
+                    elif len(data["label"]) == 4 :
+                        label_inv = data["label"][0] + data["label"][2] + data["label"][1] + data["label"][3]
+                    else :
+                        print("probleme")
+                    if graphe[v][u][edge]["label"] == label_inv and graphe[v][u][edge]["near"] == data["near"] :
+                        liste_liaison_near.append(((u,v,key), (v,u,edge))) 
+                liste_aretes.append((u,v))
+                liste_aretes.append((v,u))
+            else :
+                print("bizarre")
+    
+#     nb = nb_liaison_near(graphe) 
+#     if nb != len(liste_liaison_near) : 
+#         print("ripili")
+#         print(nb)
+#         print(len(liste_liaison_near))
+#         print(liste_liaison_near)
+#         print(liste_aretes)
+             
+    return liste_liaison_near
+
+
+''' issu de https://python.jpvweb.com/python/mesrecettespython/doku.php?id=parties_ensemble&s[]=ensemble&s[]=parties&s[]=un 
+donne la liste des ensemble des parties d'un ensemble (en utilisant notation binaire)'''    
+def partiesliste(seq):
+    p = []
+    i, imax = 0, 2**len(seq)-1
+    while i <= imax:
+        s = []
+        j, jmax = 0, len(seq)-1
+        while j <= jmax:
+            if (i>>j)&1 == 1:
+                s.append(seq[j])
+            j += 1
+        p.append(s)
+        i += 1 
+    return p  
+            
+
+
+def obtention_comparaison_avec_liaison_near(liste_num_ARN):
+    ### Recup des occurrences non redondantes et avec une bonne resolution ###
+    liste_tout = []
+    for elt in liste_num_ARN :
+        with open("resolutions.pickle", 'rb') as fichier_pickle :
+            mon_depickler = pickle.Unpickler(fichier_pickle)
+            resolutions = mon_depickler.load()
+             
+            with open("Nouvelles_donnees/liste_representant_%s.pickle"%elt, 'rb') as fichier_sortie :
+                    mon_depickler = pickle.Unpickler(fichier_sortie)
+                    liste_a_garder_noms = mon_depickler.load()    
+                       
+                    for element in liste_a_garder_noms :
+                        if resolutions[element[0]] <= 3 and element not in liste_pbs :
+                            liste_tout.append((elt, element))
+    
+    parties_liste_taille_1_4 = []
+    liste = []
+    for i in range(1,5) :
+        liste.append(i)
+        parties_liste_taille_1_4.append(partiesliste(liste))
+    print(parties_liste_taille_1_4)
+    dico_graphes = {}
+    compter = 0
+    for i in range(len(liste_tout)) :
+        with open(NEW_EXTENSION_PATH_TAILLE+"fichier_"+liste_tout[i][1][0]+"_"+str(liste_tout[i][1][1])+"_2.pickle", 'rb') as fichier1 :
+            mon_depickler_1 = pickle.Unpickler(fichier1)
+            graphe1 = mon_depickler_1.load()
+            
+            liste_near = enum_graphe_liaison_near(graphe1)
+            #nb_near = nb_liaison_near(graphe1)
+            print(liste_tout[i])
+            print(len(liste_near))
+            print(liste_near)
+        
+            if len(liste_near) != 0 :
+                if len(liste_near) == 3 :
+                    print("rapoulou")
+                    compter += 1
+                liste_temp_graphes = []
+                print("premier")
+                print(graphe1.edges.data())
+                print("modifie")
+                for comb in parties_liste_taille_1_4[len(liste_near)-1] :
+                    graph_copy = graphe1.copy()
+                    for elt in comb :
+                        graph_copy.remove_edge(liste_near[elt-1][0][0], liste_near[elt-1][0][1], key=liste_near[elt-1][0][2])
+                        graph_copy.remove_edge(liste_near[elt-1][1][0], liste_near[elt-1][1][1], key=liste_near[elt-1][1][2])
+                    print(graph_copy.edges.data())
+                    liste_temp_graphes.append(graph_copy)
+                dico_graphes.update({liste_tout[i][1] : liste_temp_graphes})
+            else :
+                dico_graphes.update({liste_tout[i][1] : [graphe1]})
+            print("apres")
+            print(graphe1.edges.data())
+            print(dico_graphes[liste_tout[i][1]])
+    print(compter)
+    #exit()
+    dico_new = {}
+    compteur = 0
+    #liste_faux_neg = [(('4ybb', 12), ('4u4r', 21)),(('4w2g', 52), ('6az1', 3)),(('4ybb', 12), ('6az1', 3)),(('2zjr', 3), ('6az1', 3)),(('4v67', 7), ('6az1', 3)),(('5wfs', 19), ('6az1', 3)),(('4u4r', 18), ('4y4o', 11)),(('4ybb', 1), ('4y4o', 22)),(('4ybb', 12), ('4y4o', 22)),(('4y4o', 25), ('4y4o', 22)),(('2zjr', 3), ('4y4o', 22)),(('4v67', 7), ('4y4o', 22)),(('6hma', 1), ('4y4o', 22)),(('5wfs', 19), ('4y4o', 22)),(('5dm6', 2), ('5nwy', 17)),(('1vq8', 16), ('3mum', 1)),(('6hma', 1), ('6ek0', 7)),(('6hma', 14), ('4faw', 2)),(('1vq8', 18), ('4faw', 2)),(('5ngm', 15), ('4faw', 2)),(('6eri', 17), ('4faw', 2)),(('6eri', 17), ('4y1n', 1)),(('5dm6', 4), ('4faw', 2)),(('4w2g', 52), ('4y4o', 22)),(('6hma', 8), ('4faw', 2)),(('6eri', 12), ('4faw', 2)),(('6qul', 4), ('4y4o', 38)),(('4ybb', 22), ('4faw', 2)),(('4ybb', 54), ('4woi', 62)),(('4ybb', 54), ('5nwy', 12)),(('4w2f', 37), ('4faw', 2)),(('4y4o', 43), ('4faw', 2)),(('5afi', 17), ('4woi', 62)),(('5afi', 17), ('5nwy', 12)),(('4ybb', 30), ('1u9s', 1)),(('1vq8', 16), ('3mur', 1)),(('6eri', 16), ('3mum', 1)),(('3cc7', 17), ('3mum', 1)),(('3ccm', 16), ('3mum', 1)),(('4ybb', 12), ('5ngm', 4)),(('4w2g', 52), ('4faw', 1)),(('4y4o', 25), ('6ek0', 7)),(('5wfs', 19), ('5ngm', 4)),(('4ybb', 12), ('4ybb', 7)),(('5wfs', 19), ('4ybb', 7)),(('4y4o', 38), ('4faw', 1)),(('4ybb', 21), ('4faw', 1)),(('5afi', 17), ('4faw', 2)),(('4y4o', 58), ('4faw', 2)),(('4y4o', 58), ('4y1n', 1))]
+    liste_faux_neg = [(('3cc7', 17), ('3mum', 1))]
+    for i in range(len(liste_tout)) :
+        for j in range(i+1, len(liste_tout)) :
+            #print(compteur)
+#             print(liste_tout[i])
+            if (liste_tout[i][1], liste_tout[j][1]) in liste_faux_neg or (liste_tout[j][1], liste_tout[i][1]) in liste_faux_neg  :
+                
+                print(compteur)
+#                 print(liste_tout[i])
+#                 print(liste_tout[j])
+                graphe_commun_max = nx.MultiDiGraph()
+                sim_max = 0.0
+                for graphe1 in dico_graphes[liste_tout[i][1]] :
+                    for graphe2 in dico_graphes[liste_tout[j][1]] :
+                        print(graphe2.edges.data())
+                        print("nombre d'aretes")
+                        print(len([(u,v) for u,v, data in graphe2.edges(data=True) if data["label"] != 'B53']))
+                        graphe_commun, sim = comparaison(graphe1, graphe2, "petit rat") 
+                        print(sim)
+                        if sim > sim_max :
+                            sim_max = sim
+                            graphe_commun_max = graphe_commun.copy()
+                print(len(dico_graphes[liste_tout[j][1]]))
+                print(sim_max)
+                dico_new.update({(liste_tout[i][1], liste_tout[j][1]) : {"graphe" : graphe_commun_max, "sim" : sim_max} })
+                compteur += 1
+                
+                
+    with open("fichier_csv_liaison_near.csv", "w") as fichier_csv :
+        csvwriter = csv.writer(fichier_csv)
+        csvwriter.writerow(["Paire", "Sim"])
+        for cle in dico_new.keys() :
+            csvwriter.writerow([cle, dico_new[cle]["sim"]])
+            print(cle)
+            print(dico_new[cle]["sim"])
+    #print(dico_new)
+            
 
 
 def creation_graphe_complet(liste_num_ARN):
@@ -738,10 +904,10 @@ def creation_graphe_complet(liste_num_ARN):
                     liste_a_garder_noms = mon_depickler.load()    
                        
                     for element in liste_a_garder_noms :
-                        if resolutions[element[0]] <= 3 :
+                        if resolutions[element[0]] <= 3 and element not in liste_pbs :
                             liste_tout.append((elt, element))
    
-    print(liste_tout)  
+    #print(liste_tout)  
     
     
     ### Creation du graphe complet qui va contenir les occurrences et leur sim ###
@@ -751,28 +917,214 @@ def creation_graphe_complet(liste_num_ARN):
     for elt in liste_tout :
         graphe_complet.add_node(elt[1], type=elt[0], nom=elt[1])
         compteur += 1
-    print(graphe_complet.nodes.data())
+    #print(graphe_complet.nodes.data())
     print(graphe_complet.number_of_nodes())
  
     
-    with open("/media/coline/Maxtor/dico_new_avec_derniere_modif_encore_modif.pickle", 'rb') as fichier_graphe_sim : ## Fichier contenant les graphes communs max et les sim pour chaque paire
+    with open("/media/coline/Maxtor/dico_new_avec_derniere_modif_encore_modif_030220.pickle", 'rb') as fichier_graphe_sim : ## Fichier contenant les graphes communs max et les sim pour chaque paire
             mon_depickler_2 = pickle.Unpickler(fichier_graphe_sim)
             dico_graphe_sim = mon_depickler_2.load()
             
             for cle in dico_graphe_sim.keys() :
-                graphe_complet.add_edge(cle[0], cle[1], sim=dico_graphe_sim[cle]["sim"])
+                if cle[0] not in liste_pbs and cle[1] not in liste_pbs :
+                    graphe_complet.add_edge(cle[0], cle[1], sim=dico_graphe_sim[cle]["sim"])
                     
             print(list(graphe_complet.edges.data())[0])
-            print(graphe_complet.nodes.data())
+            #print(graphe_complet.nodes.data())
             print(graphe_complet.number_of_nodes())
             print(graphe_complet.number_of_edges())
             
     return graphe_complet
+
+def creation_graphe_complet_rmsd(liste_num_ARN):
+    ''' creation du graphe complet pondere par les rmsd '''
+    
+    ### Recup des occurrences non redondantes et avec une bonne resolution ###
+    liste_tout = []
+    for elt in liste_num_ARN :
+        with open("resolutions.pickle", 'rb') as fichier_pickle :
+            mon_depickler = pickle.Unpickler(fichier_pickle)
+            resolutions = mon_depickler.load()
+             
+            with open("Nouvelles_donnees/liste_representant_%s.pickle"%elt, 'rb') as fichier_sortie :
+                    mon_depickler = pickle.Unpickler(fichier_sortie)
+                    liste_a_garder_noms = mon_depickler.load()    
+                       
+                    for element in liste_a_garder_noms :
+                        if resolutions[element[0]] <= 3 and element not in liste_pbs :
+                            liste_tout.append((elt, element))
+   
+    #print(liste_tout)  
     
     
+    ### Creation du graphe complet qui va contenir les occurrences et leur sim ###
+    graphe_complet = nx.Graph()
+                
+    compteur = 1
+    for elt in liste_tout :
+        graphe_complet.add_node(elt[1], type=elt[0], nom=elt[1])
+        compteur += 1
+    #print(graphe_complet.nodes.data())
+    print(graphe_complet.number_of_nodes())
+ 
+    
+    with open(PATH_MMCIF+"fichiers_rmsd_taille_%d_que_carbone_3_new_data_new.pickle"%4, 'rb') as fichier_rmsd :
+        mon_depickler = pickle.Unpickler(fichier_rmsd)
+        rmsd = mon_depickler.load() 
+            
+        for cle in rmsd.keys() :
+            cle_0 = (cle[0].split("_")[1], int(cle[0].split("_")[2]))
+            cle_1 = (cle[1].split("_")[1], int(cle[1].split("_")[2]))
+            #print(cle_0)
+            #print(cle_1)
+            if cle_0 not in liste_pbs and cle_1 not in liste_pbs and rmsd[cle] != None :
+                graphe_complet.add_edge(cle_0, cle_1, rmsd=rmsd[cle])
+        print(len(rmsd.keys()))        
+        print(list(graphe_complet.edges.data())[0])
+        #print(graphe_complet.nodes.data())
+        print(graphe_complet.number_of_nodes())
+        print(graphe_complet.number_of_edges())
+            
+    return graphe_complet
+
+    
+
+def distrib_rmsd_clusters(liste_num_ARN):
+    with open(PATH_MMCIF+"fichiers_rmsd_taille_%d_que_carbone_3_new_data_new.pickle"%4, 'rb') as fichier_rmsd :
+        mon_depickler = pickle.Unpickler(fichier_rmsd)
+        rmsd = mon_depickler.load() 
+            
+    with open("/media/coline/Maxtor/clustering_perez_%s_new_data_res_inf_3_avec_modif_030220.pickle"%liste_num_ARN, 'rb') as fichier_clusters :
+        mon_depickler = pickle.Unpickler(fichier_clusters)
+        clusters = mon_depickler.load()
+    
+    with open("groupes_homologues_version_4janv_seuil_score_70_rmsd_2.5.pickle", 'rb') as fichier_hom :
+        mon_depickler = pickle.Unpickler(fichier_hom)
+        homologues = mon_depickler.load()
+    
+    distrib_rmsd_intra = []
+    distrib_rmsd_inter = []
+    distrib_rmsd_homologues_intra = []
+    distrib_rmsd_homologues_inter = []
+    
+    for cle in rmsd.keys() :
+        if rmsd[cle] != None :
+            nom1 = (cle[0].split("_")[1], int(cle[0].split("_")[2]))
+            nom2 = (cle[1].split("_")[1], int(cle[1].split("_")[2]))
+            trouve = False
+            pas_homologues = True
+            for groupe in homologues : 
+                if nom1 in groupe and nom2 in groupe :
+                    pas_homologues = False
+            for c in clusters :
+                if nom1 in c and nom2 in c and not trouve :
+                    if pas_homologues:
+                        distrib_rmsd_intra.append(rmsd[cle])
+                    else :
+                        print("rapoulou")
+                        distrib_rmsd_homologues_intra.append(rmsd[cle])
+                    trouve = True
+            if not trouve :
+                if pas_homologues:
+                    distrib_rmsd_inter.append(rmsd[cle])
+                else :
+                    print("rapili")
+                    distrib_rmsd_homologues_inter.append(rmsd[cle])
+    
+    #print(distrib_rmsd_inter)
+    for elt in distrib_rmsd_inter : 
+        if elt > 20 :
+            print(elt)
+    sns.distplot(distrib_rmsd_inter, kde=False, norm_hist=True)
+    sns.distplot(distrib_rmsd_intra, kde=False, norm_hist = True)
+    sns.distplot(distrib_rmsd_homologues_inter, kde=False, norm_hist= True)
+    sns.distplot(distrib_rmsd_homologues_intra, kde=False, norm_hist=True)
+    plt.show()
+
+
+def creation_fichier_gephi_seuil_rmsd(liste_num_ARN, seuil_rmsd):
+        ''' creation des fichiers gephi pour visualiser le graphe complet avec sim et rmsd en ponderation des aretes
+        et type d'ARN, homologues et clustering perez comme attributs des noeuds '''
+        graphe_complet = creation_graphe_complet(liste_num_ARN)
+
+        ### On supprime les aretes en-dessous du seuil ###
+        
+        with open(PATH_MMCIF+"fichiers_rmsd_taille_%d_que_carbone_3_new_data_new.pickle"%4, 'rb') as fichier_rmsd :
+            mon_depickler = pickle.Unpickler(fichier_rmsd)
+            rmsd = mon_depickler.load()
+        
+            a_enlever = []
+            for u,v,data in graphe_complet.edges(data=True) :
+                u_nom = "fichier_%s_%d_taille_4.pdb"%(u[0], u[1])
+                v_nom = "fichier_%s_%d_taille_4.pdb"%(v[0], v[1])
+                if (u_nom, v_nom) in rmsd.keys() :
+                    if rmsd[(u_nom, v_nom)] == None or rmsd[(u_nom, v_nom)] > seuil_rmsd :
+                        a_enlever.append((u,v))
+                else :
+                    if rmsd[(v_nom, u_nom)] == None or rmsd[(v_nom, u_nom)] > seuil_rmsd :
+                        a_enlever.append((u,v))
+    
+            for elt in a_enlever :
+                graphe_complet.remove_edge(elt[0], elt[1])
+            print(graphe_complet.number_of_nodes())
+            print(graphe_complet.number_of_edges())
+            
+        
+                
+#                 with open("groupes_homologues_version_4janv_seuil_score_70_rmsd_2.5.pickle", 'rb') as fichier_hom :
+#                     mon_depickler = pickle.Unpickler(fichier_hom)
+#                     homologues = mon_depickler.load()
+
+
+                #with open("groupes_homologues_version_5fev_seuil_score_%s_%s_rmsd_%s_%s.pickle"%(60,80,2.5,4.62), 'rb') as fichier_hom :
+                #with open("groupes_homologues_version_5fev_seuil_%s_%s_%s.pickle"%(55.5,0.034,0.65), 'rb') as fichier_hom :
+            with open("groupes_homologues_60_2.pickle", 'rb') as fichier_pickle :
+                    mon_depickler = pickle.Unpickler(fichier_pickle)
+                    homologues = mon_depickler.load()
+                    print(homologues)
+
+                ### Creation des fichiers Gephi pour visualiser le graphe ###
+            with open("/media/coline/Maxtor/fichier_csv_new_data_inter_groupe_seuil_rmsd_%s.csv"%seuil_rmsd,'w') as fichier_csv:
+                        csvwriter = csv.writer(fichier_csv)
+                        csvwriter.writerow(["source", "target", "weight", "sim"])
+                        
+                        
+                        print(graphe_complet.nodes.data())
+                        for u,v,data in graphe_complet.edges(data=True) :
+                            u_nom = "fichier_%s_%d_taille_4.pdb"%(u[0], u[1])
+                            v_nom = "fichier_%s_%d_taille_4.pdb"%(v[0], v[1])
+                            if (u_nom, v_nom) in rmsd.keys() :
+                                val_rmsd = rmsd[(u_nom, v_nom)] 
+                            else :
+                                val_rmsd = rmsd[(v_nom, u_nom)] 
+                            
+                            if val_rmsd != None :
+                                csvwriter.writerow([u,v, round(val_rmsd,2), round(data["sim"],2)])
+                            else :
+                                csvwriter.writerow([u,v, None, round(data["sim"],2)]) 
+                            
+                            with open("/media/coline/Maxtor/fichier_csv_new_data_inter_groupe_seuil_rmsd_%s_noeud.csv"%(seuil_rmsd),'w') as fichier_csv:
+                                csvwriter2 = csv.writer(fichier_csv)
+                                csvwriter2.writerow(["id", "label", "type", "homologues"])
+                                     
+                                for noeud,data in graphe_complet.nodes(data=True) :
+                                    #print(noeud)
+                                    num_hom = -1
+                                            
+                                    compteur = 0
+                                    for groupe in homologues :
+                                        if noeud in groupe :
+                                            num_hom = compteur
+                                        compteur += 1 
+                                    
+                                    
+                                    csvwriter2.writerow([noeud, data["nom"], graphe_complet.nodes[noeud]["type"], num_hom])
+
+
+
 def creation_fichier_gephi(liste_num_ARN, seuil):
         ''' creation des fichiers gephi pour visualiser le graphe complet avec sim et rmsd en ponderation des aretes
-        et type d'ARN et clustering perez comme attributs des noeuds '''
+        et type d'ARN, homologues et clustering perez comme attributs des noeuds '''
         graphe_complet = creation_graphe_complet(liste_num_ARN)
 
         ### On supprime les aretes en-dessous du seuil ###
@@ -788,45 +1140,79 @@ def creation_fichier_gephi(liste_num_ARN, seuil):
         print(graphe_complet.number_of_edges())
             
             
-        with open(PATH_MMCIF+"fichiers_rmsd_taille_%d_que_carbone_1_new_data.pickle"%4, 'rb') as fichier_rmsd :
+        with open(PATH_MMCIF+"fichiers_rmsd_taille_%d_que_carbone_3_new_data_new.pickle"%4, 'rb') as fichier_rmsd :
             mon_depickler = pickle.Unpickler(fichier_rmsd)
             rmsd = mon_depickler.load() 
             
-        with open("/media/coline/Maxtor/clustering_perez_%s_new_data_res_inf_3_avec_modif_612.pickle"%liste_num_ARN, 'rb') as fichier_clusters :
-            mon_depickler = pickle.Unpickler(fichier_clusters)
-            clusters = mon_depickler.load()
+        with open(PATH_MMCIF+"fichiers_rmsd_taille_%d_que_carbone_3_new_data_new.pickle"%3, 'rb') as fichier_rmsd :
+            mon_depickler = pickle.Unpickler(fichier_rmsd)
+            rmsd.update(mon_depickler.load())
             
-            with open("/media/coline/Maxtor/clustering_perez_%s_new_data_res_inf_3_avec_modif_relevance_612.pickle"%liste_num_ARN, 'rb') as fichier_relevance :
-                mon_depickler = pickle.Unpickler(fichier_relevance)
-                dico_relevance = mon_depickler.load()
-    #                 
+        with open(PATH_MMCIF+"fichiers_rmsd_taille_%d_que_carbone_3_new_data_new.pickle"%2, 'rb') as fichier_rmsd :
+            mon_depickler = pickle.Unpickler(fichier_rmsd)
+            rmsd.update(mon_depickler.load()) 
+        with open(PATH_MMCIF+"fichiers_rmsd_taille_%d_que_carbone_3_new_data_new.pickle"%0, 'rb') as fichier_rmsd :
+            mon_depickler = pickle.Unpickler(fichier_rmsd)
+            rmsd.update(mon_depickler.load())
+                        
+            graphe_complet_copie = copy.deepcopy(graphe_complet)
+            clusters, dico_relevance = recup_data.clustering_perez.algo_principal(graphe_complet_copie)
+            
+            
+#         with open("/media/coline/Maxtor/clustering_perez_%s_new_data_res_inf_3_avec_modif_030220.pickle"%liste_num_ARN, 'rb') as fichier_clusters :
+#             mon_depickler = pickle.Unpickler(fichier_clusters)
+#             clusters = mon_depickler.load()
+#             
+#             with open("/media/coline/Maxtor/clustering_perez_%s_new_data_res_inf_3_avec_modif_relevance_030220.pickle"%liste_num_ARN, 'rb') as fichier_relevance :
+#                 mon_depickler = pickle.Unpickler(fichier_relevance)
+#                 dico_relevance = mon_depickler.load()
+                
+#                 with open("groupes_homologues_version_4janv_seuil_score_70_rmsd_2.5.pickle", 'rb') as fichier_hom :
+#                     mon_depickler = pickle.Unpickler(fichier_hom)
+#                     homologues = mon_depickler.load()
+
+
+                #with open("groupes_homologues_version_5fev_seuil_score_%s_%s_rmsd_%s_%s.pickle"%(60,80,2.5,4.62), 'rb') as fichier_hom :
+                #with open("groupes_homologues_version_5fev_seuil_%s_%s_%s.pickle"%(55.5,0.034,0.65), 'rb') as fichier_hom :
+            with open("groupes_homologues_60_2.pickle", 'rb') as fichier_pickle :
+                    mon_depickler = pickle.Unpickler(fichier_pickle)
+                    homologues = mon_depickler.load()
+                    print(homologues)
+                    
+                    pas_bons = []
+#                 with open("groupes_homologues_pas_bon_version_5fev_seuil_%s_%s_%s.pickle"%(55.5,0.034,0.65), 'rb') as fichier_hom_2 :
+#                     mon_depickler = pickle.Unpickler(fichier_hom_2)
+#                     pas_bons = mon_depickler.load()  
+#                     print(pas_bons)
                 ### Creation des fichiers Gephi pour visualiser le graphe ###
-                with open("/media/coline/Maxtor/fichier_csv_new_data_seuil_0.6_inter_groupe_res_3A_avec_modif_612.csv",'w') as fichier_csv:
+            with open("/media/coline/Maxtor/fichier_csv_new_data_seuil_%s_inter_groupe_res_3A_030220_60_2.csv"%seuil,'w') as fichier_csv:
                         csvwriter = csv.writer(fichier_csv)
-                        csvwriter.writerow(["source", "target", "label"])
+                        csvwriter.writerow(["source", "target", "sim", "rmsd_4", "rmsd_3", "rmsd_2", "rmsd_1"])
                         
                         
                         print(graphe_complet.nodes.data())
+                        
                         for u,v,data in graphe_complet.edges(data=True) :
-                            u_nom = "fichier_%s_%d_taille_4.pdb"%(u[0], u[1])
-                            v_nom = "fichier_%s_%d_taille_4.pdb"%(v[0], v[1])
-                            if (u_nom, v_nom) in rmsd.keys() :
-                                val_rmsd = rmsd[(u_nom, v_nom)] 
-                            else :
-                                val_rmsd = rmsd[(v_nom, u_nom)] 
+                            val_rmsd = []
+                            for i in [4,3,2,0] :
+                                u_nom = "fichier_%s_%d_taille_%d.pdb"%(u[0], u[1], i)
+                                v_nom = "fichier_%s_%d_taille_%d.pdb"%(v[0], v[1], i)
+                                
+                                if (u_nom, v_nom) in rmsd.keys() :
+                                    val_rmsd.append(rmsd[(u_nom, v_nom)]) 
+                                else :
+                                    val_rmsd.append(rmsd[(v_nom, u_nom)])
                             
-                            if val_rmsd != None :
-                                csvwriter.writerow([u,v,(round(data["sim"],2), round(val_rmsd,2))])
-                            else :
-                                csvwriter.writerow([u,v,(round(data["sim"],2), None)]) 
+                            csvwriter.writerow([u,v,round(data["sim"],2), round(val_rmsd[0],2) if val_rmsd[0] != None else None, round(val_rmsd[1],2) if val_rmsd[1] != None else None, round(val_rmsd[2],2) if val_rmsd[2] != None else None, round(val_rmsd[3],2) if val_rmsd[3] != None else None]) 
                             
-                            with open("/media/coline/Maxtor/fichier_csv_new_data_seuil_0.6_inter_groupe_noeud_res_3A_avec_modif_612.csv",'w') as fichier_csv:
+                        with open("/media/coline/Maxtor/fichier_csv_new_data_seuil_%s_inter_groupe_noeud_res_3A_030220_60_2.csv"%(seuil),'w') as fichier_csv:
                                 csvwriter2 = csv.writer(fichier_csv)
-                                csvwriter2.writerow(["id", "label", "type", "clustering_perez", "relevance"])
+                                csvwriter2.writerow(["id", "label", "type", "clustering_perez", "relevance", "homologues", "pb_hom"])
                                      
                                 for noeud,data in graphe_complet.nodes(data=True) :
-                                    print(noeud)
+                                    #print(noeud)
                                     compteur = 0
+                                    num_hom = -1
                                     clustering = []
                                     for cluster in clusters :
                                         #print(clusters)
@@ -836,8 +1222,19 @@ def creation_fichier_gephi(liste_num_ARN, seuil):
                                     
                                             
                                         compteur += 1
+                                    compteur = 0
+                                    pb_hom = 0
+                                    for groupe in homologues :
+                                        if noeud in groupe :
+                                            num_hom = compteur
+                                            
+                                            if compteur in pas_bons :
+                                                print(noeud)
+                                                pb_hom = 1
+                                        compteur += 1 
                                     
-                                    csvwriter2.writerow([noeud, data["nom"], graphe_complet.nodes[noeud]["type"], list(clustering), dico_relevance[noeud]])
+                                    
+                                    csvwriter2.writerow([noeud, data["nom"], graphe_complet.nodes[noeud]["type"], list(clustering), dico_relevance[noeud], num_hom, pb_hom])
                                     del(clustering[:])
 
 ''' execution de toutes les comparaisons des occurrences selectionnees dans liste_tout
@@ -865,7 +1262,7 @@ def recherche_comparaison_groupe(liste_tout):
                                 graphe_commun_max, sim_max = comparaison(graphe1, graphe2, "petit rat") 
                                 dico_new.update({(elt, elt2) : {"graphe" : graphe_commun_max, "sim" : sim_max} })
                 compteur += 1
-    with open("/media/coline/Maxtor/dico_new_avec_derniere_modif_encore_modif_612.pickle", "wb") as fichier_pickle :
+    with open("/media/coline/Maxtor/dico_new_avec_derniere_modif_encore_modif_030220.pickle", "wb") as fichier_pickle :
         mon_pickler = pickle.Pickler(fichier_pickle)
         mon_pickler.dump(dico_new)       
 
@@ -897,6 +1294,9 @@ def recherche_comparaison_groupe_moyen(graphe_commun, liste_tout):
             print(compte)
     print(compteur)
     print(liste_contient)
+    for elt in dico_new.keys() :
+        print(elt)
+        print(dico_new[elt])
 #     with open("/media/coline/Maxtor/dico_new_avec_derniere_modif_encore_modif_612.pickle", "wb") as fichier_pickle :
 #         mon_pickler = pickle.Pickler(fichier_pickle)
 #         mon_pickler.dump(dico_new)   
@@ -953,15 +1353,18 @@ def test(liste_tout):
 if __name__ == '__main__':
     
     
-#     with open("Nouvelles_donnees/fichier_4ybb_4_2.pickle", 'rb') as fichier_graphe1 :
-#         mon_depickler = pickle.Unpickler(fichier_graphe1)
-#         graphe1 = mon_depickler.load()
-#     with open("Nouvelles_donnees/fichier_6hrm_3_2.pickle", 'rb') as fichier_graphe2 :
-#         mon_depickler_2 = pickle.Unpickler(fichier_graphe2)
-#         graphe2 = mon_depickler_2.load()
-#        
-#         sous_graphe_commun, sim = comparaison(graphe1, graphe2, "petit rat")
-#         print(sim)
+    with open("Nouvelles_donnees/fichier_5wfs_11_2.pickle", 'rb') as fichier_graphe1 :
+        mon_depickler = pickle.Unpickler(fichier_graphe1)
+        graphe1 = mon_depickler.load()
+    with open("Nouvelles_donnees/fichier_4u3u_7_2.pickle", 'rb') as fichier_graphe2 :
+        mon_depickler_2 = pickle.Unpickler(fichier_graphe2)
+        graphe2 = mon_depickler_2.load()
+         
+        sous_graphe_commun, sim, diff = comparaison(graphe1, graphe2, "petit rat")
+        print(diff)
+        print(sim)
+        exit()
+        
 #         
 #         dico_test = {(('4ybb', 4), ('6hrm', 3)) : {"graphe" : sous_graphe_commun, "sim" : sim}}
 #          
@@ -970,21 +1373,27 @@ if __name__ == '__main__':
 #             mon_pickler.dump(dico_test)
 #     tps1 = time.time() 
     types_arn = ["23S", "18S", "16S","Ribozyme", "Riboswitch", "SRP", "28S", "25S", "Intron", "arnt_16S_arnm", "arnt_16S"]
+    obtention_comparaison_avec_liaison_near(types_arn)
+    exit()
 # # #     #creation_graphe_complet(types_arn)
-    #creation_fichier_gephi(types_arn, 0.6)
+    creation_fichier_gephi(types_arn, 0.75)
+    #creation_fichier_gephi_seuil_rmsd(types_arn, 4)
+    
+    #distrib_rmsd_clusters(types_arn)
+
 # # #     
-# # #     
+# #     
     liste_tout = []
     with open("resolutions.pickle", 'rb') as fichier_pickle :
                 mon_depickler = pickle.Unpickler(fichier_pickle)
                 resolutions = mon_depickler.load()
     for elt in types_arn :
-               
-                       
+                 
+                         
                 with open("Nouvelles_donnees/liste_representant_%s.pickle"%elt, 'rb') as fichier_sortie :
                         mon_depickler = pickle.Unpickler(fichier_sortie)
                         liste_a_garder_noms = mon_depickler.load()    
-                                 
+                                   
                         for element in liste_a_garder_noms :
                             if element == ('4w2f', 16) :
                                 print(element)
@@ -995,30 +1404,40 @@ if __name__ == '__main__':
                                     print(elt)
                                 if element not in liste_tout :
                                     liste_tout.append(element)
-             
+               
     print(liste_tout)  
     
-    with open("Nouvelles_donnees/Graphes_communs/graphe_commun_cluster_38_4_avec_coord.pickle", 'rb') as fichier_ecriture :
+    recherche_comparaison_groupe(liste_tout)
+    exit()
+      
+    #with open("Nouvelles_donnees/Graphes_communs/graphe_commun_cluster_38_4_avec_coord.pickle", 'rb') as fichier_ecriture :
+    with open(EXTENSION_PATH%"taille_max"+"result_k_max_4_10_toutes_aretes/digraphe_commun_0.7_clustering_perez_groupe_12_taille_4.pickle", 'rb') as fichier_ecriture :
         mon_depickler = pickle.Unpickler(fichier_ecriture)
         graphe_commun = mon_depickler.load()
-        
+          
         print(graphe_commun.nodes.data())
+        
         
         for noeud, data in graphe_commun.nodes(data=True) :
             print(noeud, data)
-            
+        
+        graphe_commun = nx.convert_node_labels_to_integers(graphe_commun, first_label=1)
+        
+        for noeud, data in graphe_commun.nodes(data=True) :
+            print(noeud, data)
+              
         compter_chaines = [0,0,0,0]
         for noeud, data in graphe_commun.nodes(data=True) :
             for i in range(1,5) :
                 if i in data["chaine"] and data["type"] != None and data["type"] != -1 :
                     compter_chaines[i-1] += 1
-        
+          
         print(compter_chaines)
         pas_bon = True
         while pas_bon :
             pas_bon = False
             chaines = recup_chaines(graphe_commun) 
-            
+              
             compteur = 1
             for ch in chaines :
                 if len(ch) < compter_chaines[compteur-1] :
@@ -1037,13 +1456,17 @@ if __name__ == '__main__':
                         graphe_commun.add_edge(ch[len(ch)-1], noeud_plus_pres, label="B53")
                     else :
                         graphe_commun.add_edge(noeud_plus_pres, ch[len(ch)-1], label="B53")
-                        
+                          
                 compteur += 1
                 #print(chaines)
         print(chaines)
-        
+          
         graphe_commun.nodes[5]["position"] = [0]
         
+        for noeud, data in graphe_commun.nodes(data=True) :
+            print(noeud, data)
+        
+        #exit()
         recherche_comparaison_groupe_moyen(graphe_commun, liste_tout)  
         
 #         
