@@ -13,7 +13,7 @@ import time
 import copy
 from recup_data.new_algo_comparaison import calcul_sim_aretes_avec_coeff,\
     recup_chaines, chaines_reliees
-from recup_data.constantes import NEW_EXTENSION_PATH_TAILLE
+from recup_data.constantes import NEW_EXTENSION_PATH_TAILLE, liste_pbs
 from recup_data.recup_new_data import recherche_composante_connexe
 
 ''' calcul du nombre d'aretes dans le graphe passe en parametre en comptant le motif '''
@@ -1781,7 +1781,7 @@ def new_heuristique(graphe1_deb, graphe2_deb):
                                                                         liste_superposes_temp.append((voisin_1, voisin_2))
             
                                                                     liste_superposes_ar_temp.add(((voisin_1, noeud1, edge_1), (voisin_2, noeud2, edge_2)))
-                                    if nb_voisins_trouves == 0 and graphe1.nodes[noeud1]["type"] in [2,3] :
+                                    if nb_voisins_trouves == 0 and graphe1.nodes[noeud1]["type"] in [1,2,3] :
 #                                         print("roupoulou")
 #                                         print((noeud1, noeud2))
 #                                         print(liste_superposes_temp)
@@ -2171,6 +2171,22 @@ def new_heuristique(graphe1_deb, graphe2_deb):
     
 if __name__ == '__main__':
     
+    with open(NEW_EXTENSION_PATH_TAILLE+"fichier_4v67_7_4.pickle", "rb") as fichier_graphe1 :
+                            mon_depickler_1 = pickle.Unpickler(fichier_graphe1)
+                            graphe1_vrai = mon_depickler_1.load()
+                                          
+    with open(NEW_EXTENSION_PATH_TAILLE+"fichier_5wfs_19_4.pickle", "rb") as fichier_graphe2 :
+                            mon_depickler_2 = pickle.Unpickler(fichier_graphe2)
+                            graphe2_vrai = mon_depickler_2.load()  
+                            
+    graphe_commun = new_heuristique(graphe1_vrai, graphe2_vrai)
+    
+    sim_1 = calcul_sim_aretes_avec_coeff(graphe1_vrai, graphe2_vrai, graphe_commun, "rat", 1, 1, 1)
+    print(sim_1)
+    
+    #exit()
+    
+    
     with open("dico_algo_heuristique_new_v_e8f97fe.pickle", 'rb') as fichier_graphe :
         mon_depickler = pickle.Unpickler(fichier_graphe)
         dico_graphe = mon_depickler.load() 
@@ -2184,7 +2200,7 @@ if __name__ == '__main__':
             print(dico_graphe_exact[(('5dm6', 9), ('1l8v', 1))])
             #exit()
             
-    with open("fichier_diff_e8f97fe.pickle", 'rb') as fichier_diff :
+    with open("fichier_diff_0824b50.pickle", 'rb') as fichier_diff :
             mon_depickler = pickle.Unpickler(fichier_diff)
             liste_pas_pareil_1 = mon_depickler.load()
             
@@ -2407,7 +2423,7 @@ if __name__ == '__main__':
     
     ''' new_heuristique '''
       
-    with open("/media/coline/Maxtor/dico_new_avec_derniere_modif_encore_modif_030220.pickle", "rb") as fichier_dico_graphe_algo_exact :
+    with open("/media/coline/Maxtor/dico_new_020420.pickle", "rb") as fichier_dico_graphe_algo_exact :
         mon_depickler = pickle.Unpickler(fichier_dico_graphe_algo_exact)
         dico_graphe_sim = mon_depickler.load()
                       
@@ -2429,7 +2445,7 @@ if __name__ == '__main__':
                                               
                 #print(resolutions)
                 for elt in liste_representant :
-                    if resolutions[elt[0]] <= 3.0 :
+                    if resolutions[elt[0]] <= 3.0 and elt not in liste_pbs and elt[0] != '6hrm':
                         if elt == ('4w2f', 16) :
                             print(typ)
                         if elt not in liste_a_garder :
@@ -2445,6 +2461,7 @@ if __name__ == '__main__':
             #if liste_a_garder[i] == ('5dm6',3) :
                 for j in range(i+1, len(liste_a_garder)) :
                     #if liste_a_garder[j] == ('4ybb', 36) :
+                    if (liste_a_garder[i], liste_a_garder[j]) in dico_graphe_sim.keys() or (liste_a_garder[j], liste_a_garder[i]) in dico_graphe_sim.keys() :
                         print(compteur)
                         with open(NEW_EXTENSION_PATH_TAILLE+"fichier_%s_%s_4.pickle"%(liste_a_garder[i][0], liste_a_garder[i][1]), "rb") as fichier_graphe1 :
                             mon_depickler_1 = pickle.Unpickler(fichier_graphe1)
