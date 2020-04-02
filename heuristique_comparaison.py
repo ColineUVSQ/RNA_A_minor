@@ -129,8 +129,8 @@ def test_compatibilite(graphe_commun, noeud, graphe1, graphe2):
 #                     print(distance_entre_noeuds_meme_chaine(graphe1, chaine_noeud11, noeud[0]))
 #                     print(distance_entre_noeuds_meme_chaine(graphe1, chaine_noeud21, noeud2[0]))
                     #if (distance_entre_noeuds_meme_chaine(graphe1, chaine_noeud11, noeud[0]) < distance_entre_noeuds_meme_chaine(graphe1, chaine_noeud21, noeud2[0]) and distance_entre_noeuds_meme_chaine(graphe2, chaine_noeud12, noeud[1]) > distance_entre_noeuds_meme_chaine(graphe2, chaine_noeud22, noeud2[1])) or  (distance_entre_noeuds_meme_chaine(graphe1, chaine_noeud11, noeud[0]) > distance_entre_noeuds_meme_chaine(graphe1, chaine_noeud21, noeud2[0]) and distance_entre_noeuds_meme_chaine(graphe2, chaine_noeud12, noeud[1]) < distance_entre_noeuds_meme_chaine(graphe2, chaine_noeud22, noeud2[1])) :
-                    if (abs(noeud[0]-modele) < abs(noeud2[0]-modele) and abs(noeud[1] - modele) > abs(noeud2[1]-modele)) or (abs(noeud[0]-modele) > abs(noeud2[0]-modele) and abs(noeud[1] - modele) < abs(noeud2[1]-modele)) :
-                        return False
+                    #if (abs(noeud[0]-modele) < abs(noeud2[0]-modele) and abs(noeud[1] - modele) > abs(noeud2[1]-modele)) or (abs(noeud[0]-modele) > abs(noeud2[0]-modele) and abs(noeud[1] - modele) < abs(noeud2[1]-modele)) :
+                    return False
     
     return True
 
@@ -1540,11 +1540,11 @@ def test_compatibilite_new(noeud1, noeud2, graphe1, graphe2, liste_superposes):
         #                     print(distance_entre_noeuds_meme_chaine(graphe1, chaine_noeud11, noeud[0]))
         #                     print(distance_entre_noeuds_meme_chaine(graphe1, chaine_noeud21, noeud2[0]))
                             #if (distance_entre_noeuds_meme_chaine(graphe1, chaine_noeud11, noeud[0]) < distance_entre_noeuds_meme_chaine(graphe1, chaine_noeud21, noeud2[0]) and distance_entre_noeuds_meme_chaine(graphe2, chaine_noeud12, noeud[1]) > distance_entre_noeuds_meme_chaine(graphe2, chaine_noeud22, noeud2[1])) or  (distance_entre_noeuds_meme_chaine(graphe1, chaine_noeud11, noeud[0]) > distance_entre_noeuds_meme_chaine(graphe1, chaine_noeud21, noeud2[0]) and distance_entre_noeuds_meme_chaine(graphe2, chaine_noeud12, noeud[1]) < distance_entre_noeuds_meme_chaine(graphe2, chaine_noeud22, noeud2[1])) :
-                            if (abs(noeud1-modele) < abs(noeud[0]-modele) and abs(noeud2 - modele) > abs(noeud[1]-modele)) or (abs(noeud1-modele) > abs(noeud[0]-modele) and abs(noeud2 - modele) < abs(noeud[1]-modele)) :
-                                print(noeud)
-                                return False
-                            else : 
-                                print("petit rat")
+                            #if (abs(noeud1-modele) < abs(noeud[0]-modele) and abs(noeud2 - modele) > abs(noeud[1]-modele)) or (abs(noeud1-modele) > abs(noeud[0]-modele) and abs(noeud2 - modele) < abs(noeud[1]-modele)) :
+                            print(noeud)
+                            return False
+                            #else : 
+                            #    print("petit rat")
     
     return True
 
@@ -1654,17 +1654,17 @@ def new_heuristique(graphe1_deb, graphe2_deb):
             exit()
 
         if noeud_maxi != -1 :
-            print("raaaapaaaalaaaa")
-            print(noeud_maxi)
+#             print("raaaapaaaalaaaa")
+#             print(noeud_maxi)
             #sommets_possibles = dico_chaines_1[graphe1.nodes[noeud_maxi]["chaine"][0]-1][noeud_maxi] ## on recupere l'ensemble des noeuds du graphe2 compatibles avec noeud_maxi
             
             ''' on teste chaque composante du graphe 2 à la recherche d'une compatibilite avec comp1 du graphe1 '''
             while indice_2 < len(composantes_2) :
                 
                 comp2 = list(composantes_2.keys())[indice_2]
-                print("composantes :")
-                print(comp1)
-                print(comp2)
+#                 print("composantes :")
+#                 print(comp1)
+#                 print(comp2)
                 
                 ''' comp2 est compatible avec comp1 s'il y a au moins un numero identique dans le nom des deux composantes '''
                 ok = False
@@ -1675,7 +1675,7 @@ def new_heuristique(graphe1_deb, graphe2_deb):
                     if elt in comp1 :
                         ok = True
                         
-                print(ok)
+#                 print(ok)
                 if ok :
                     #print("gros tas")
                     sommets_possibles = recup_sommets_possibles(noeud_maxi, graphe1, dico_chaines_1, composantes_2[comp2]) ## on recupere l'ensemble des noeuds du graphe2 compatibles avec noeud_maxi et appartenant a comp2
@@ -1825,8 +1825,8 @@ def new_heuristique(graphe1_deb, graphe2_deb):
             
             if sommet_max_2 != -1 and sommet_max_1 != -1 : 
                         ''' on a trouve un morceau de graphe compatible dans comp1 en partant de noeud_maxi'''
-                        print("gros tas")
-                        print(comp2_max)
+#                         print("gros tas")
+#                         print(comp2_max)
                         
                         ## on marque pour de bon les sommets et les aretes du sous-graphe commun temporaire choisi, comme faisant partie du sous-graphe commun max
                         ## et on les exclut de la suite de l'analyse en modifiant leur attribut num_composante : ils n'appartiennent plus à aucune composante
@@ -1960,8 +1960,8 @@ def new_heuristique(graphe1_deb, graphe2_deb):
                                         for elt in new_groupes_1[i] :
                                             graphe1.nodes[elt]["num_composante"].append(chr(ord('a') + i))
                                         composantes_1.update({tuple(graphe1.nodes[elt]["num_composante"]) : list(new_groupes_1[i])})
-                                print("ramousnif")
-                                print(composantes_1)
+#                                 print("ramousnif")
+#                                 print(composantes_1)
     
                             if nb_nb_2 > 1 :
                                 ## cas ou comp2_max est constituee de plusieurs chaines
@@ -1979,8 +1979,8 @@ def new_heuristique(graphe1_deb, graphe2_deb):
                                         graphe2.nodes[elt]["num_composante"].append(chr(ord('a') + compte))
                                     compte += 1
                                     composantes_2.update({tuple(graphe2.nodes[elt]["num_composante"]) : list(compo)})
-                                print("roupoulou")
-                                print(composantes_2)
+#                                 print("roupoulou")
+#                                 print(composantes_2)
                                 del(composantes_2[comp2_max])
                             else :
                                 ## cas ou comp2_max est constituee d'une seule chaine
@@ -2069,8 +2069,8 @@ def new_heuristique(graphe1_deb, graphe2_deb):
                                 
                         graphe1.nodes[noeud_maxi]["num_composante"] = -1
 #             print(graphe1.nodes.data())
-            print(composantes_1)
-            print(composantes_2)
+#             print(composantes_1)
+#             print(composantes_2)
         indice_1 += 1
 
     ''' on construit le sous-graphe commun a partir des attributs marque des noeuds et des aretes des graphes '''        
@@ -2170,9 +2170,28 @@ def new_heuristique(graphe1_deb, graphe2_deb):
     return sous_graphe_commun
     
 if __name__ == '__main__':
-    with open("fichier_diff_de89e8b.pickle", 'rb') as fichier_diff :
+    
+    with open("dico_algo_heuristique_new_v_e8f97fe.pickle", 'rb') as fichier_graphe :
+        mon_depickler = pickle.Unpickler(fichier_graphe)
+        dico_graphe = mon_depickler.load() 
+        
+        print(dico_graphe[(('5dm6', 9), ('1l8v', 1))])
+        
+        with open("/media/coline/Maxtor/dico_new_avec_derniere_modif_encore_modif_612.pickle", 'rb') as fichier_graphe_exact :
+            mon_depickler_ex = pickle.Unpickler(fichier_graphe_exact)
+            dico_graphe_exact = mon_depickler_ex.load() 
+            
+            print(dico_graphe_exact[(('5dm6', 9), ('1l8v', 1))])
+            #exit()
+            
+    with open("fichier_diff_e8f97fe.pickle", 'rb') as fichier_diff :
             mon_depickler = pickle.Unpickler(fichier_diff)
             liste_pas_pareil_1 = mon_depickler.load()
+            
+            for elt in liste_pas_pareil_1 : 
+                print(elt)
+            print(len(liste_pas_pareil_1))
+            #exit()
     
     with open("fichier_diff_426d48b.pickle", 'rb') as fichier_diff :
             mon_depickler = pickle.Unpickler(fichier_diff)
@@ -2388,7 +2407,7 @@ if __name__ == '__main__':
     
     ''' new_heuristique '''
       
-    with open("/media/coline/Maxtor/dico_new_avec_derniere_modif_encore_modif_612.pickle", "rb") as fichier_dico_graphe_algo_exact :
+    with open("/media/coline/Maxtor/dico_new_avec_derniere_modif_encore_modif_030220.pickle", "rb") as fichier_dico_graphe_algo_exact :
         mon_depickler = pickle.Unpickler(fichier_dico_graphe_algo_exact)
         dico_graphe_sim = mon_depickler.load()
                       
@@ -2420,17 +2439,18 @@ if __name__ == '__main__':
         
         dico_graphe_sim_heuri = {}
         liste_pas_pareil = []
+        liste_ordre_graphes = []
         compter_diff = 0
         for i in range(len(liste_a_garder)) :
             #if liste_a_garder[i] == ('5dm6',3) :
                 for j in range(i+1, len(liste_a_garder)) :
                     #if liste_a_garder[j] == ('4ybb', 36) :
                         print(compteur)
-                        with open(NEW_EXTENSION_PATH_TAILLE+"fichier_%s_%s_2.pickle"%(liste_a_garder[i][0], liste_a_garder[i][1]), "rb") as fichier_graphe1 :
+                        with open(NEW_EXTENSION_PATH_TAILLE+"fichier_%s_%s_4.pickle"%(liste_a_garder[i][0], liste_a_garder[i][1]), "rb") as fichier_graphe1 :
                             mon_depickler_1 = pickle.Unpickler(fichier_graphe1)
                             graphe1_vrai = mon_depickler_1.load()
                                           
-                        with open(NEW_EXTENSION_PATH_TAILLE+"fichier_%s_%s_2.pickle"%(liste_a_garder[j][0], liste_a_garder[j][1]), "rb") as fichier_graphe2 :
+                        with open(NEW_EXTENSION_PATH_TAILLE+"fichier_%s_%s_4.pickle"%(liste_a_garder[j][0], liste_a_garder[j][1]), "rb") as fichier_graphe2 :
                             mon_depickler_2 = pickle.Unpickler(fichier_graphe2)
                             graphe2_vrai = mon_depickler_2.load()  
                         
@@ -2478,6 +2498,7 @@ if __name__ == '__main__':
                                     liste_pas_pareil.append((liste_a_garder[j], liste_a_garder[i]))  
                           
                         if sim_1 != sim_2 :
+                            liste_ordre_graphes.append((liste_a_garder[j], liste_a_garder[i]))
                             compter_diff += 1
                                 
                         compteur += 1
@@ -2488,6 +2509,10 @@ if __name__ == '__main__':
         with open("fichier_diff.pickle", 'wb') as fichier_diff :
             mon_pickler = pickle.Pickler(fichier_diff)
             mon_pickler.dump(liste_pas_pareil)
+            
+        with open("fichier_ordre_graphes.pickle", 'wb') as fichier_ordre :
+            mon_pickler = pickle.Pickler(fichier_ordre)
+            mon_pickler.dump(liste_ordre_graphes)
 # #         
 #         print(liste_pas_pareil)
         with open("dico_algo_heuristique_new_v.pickle", 'wb') as fichier_sortie :
