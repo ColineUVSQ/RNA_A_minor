@@ -1747,6 +1747,8 @@ def new_heuristique(graphe1_deb, graphe2_deb):
                                                             else :
                                                                 dico_labels[(voisin_1, edge_1)].append((voisin_2, edge_2))
                                     ## on choisit la paire ou le nombre de voisins est le plus proche                        
+#                                     print("poutoutou")
+#                                     print(dico_labels)
                                     for cle in dico_labels.keys() :
                                         if len(dico_labels[cle]) > 1 :
                                             diff_voisins = 5
@@ -1758,10 +1760,11 @@ def new_heuristique(graphe1_deb, graphe2_deb):
                                                     meilleur_voisin = compteur_v
                                                 compteur_v += 1
                                             dico_labels[cle] = [dico_labels[cle][meilleur_voisin]]
-                                            
-                                    nb_voisins_trouves = 0
-#                                     print("poutoutou")
+                                    
+#                                     print("patata")
 #                                     print(dico_labels)
+                                    nb_voisins_trouves = 0
+                                    
                                     for cle in dico_labels.keys() :
                                             voisin_1 = cle[0]
                                             edge_1 = cle[1]
@@ -1887,10 +1890,11 @@ def new_heuristique(graphe1_deb, graphe2_deb):
                 indice_2 += 1
 #             print(composantes_1)
 #             print(composantes_2)        
-            
+#             
 #             print("rah")
 #             print(liste_superposes_a_garder)
 #             print(liste_superposes_a_garder_ar)
+
             if sommet_max_2 != -1 and sommet_max_1 != -1 : 
                         ''' on a trouve un morceau de graphe compatible dans comp1 en partant de noeud_maxi'''
 #                         print("gros tas")
@@ -1931,6 +1935,11 @@ def new_heuristique(graphe1_deb, graphe2_deb):
                                 
                         
                         if nb_nb_1 == 1 and nb_nb_2 == 1 :
+#                             print("ouhou")
+#                             print(comp1)
+#                             print(comp2_max)
+#                             print(composantes_1)
+#                             print(composantes_2)
                             ## cas ou comp1 et comp2_max sont constituees d'une seule chaine
                             
                             ## dans ce cas : on va pouvoir separer en 2 comp1 et comp2_max (en supprimant les sommets ajoutes au graphe commun)
@@ -1983,9 +1992,9 @@ def new_heuristique(graphe1_deb, graphe2_deb):
                                     
                                     #del(composantes_1[comp1])
                             ## on supprime la composante comp2_max mais pas comp1 car le traitement de comp1 est termine, on n'y reviendra plus contrairement a comp2_max
-                            del(composantes_2[comp2_max])
-                                    
-    
+                            #del(composantes_2[comp2_max])
+#                             print(composantes_1)
+#                             print(composantes_2)
                                     
     
                         else :
@@ -2071,7 +2080,7 @@ def new_heuristique(graphe1_deb, graphe2_deb):
                                         for elt in new_groupes_2[i] :
                                             graphe2.nodes[elt]["num_composante"].append(chr(ord('a') + i))
                                         composantes_2.update({tuple(graphe2.nodes[elt]["num_composante"]) : list(new_groupes_2[i])})
-                                del(composantes_2[comp2_max])
+                                #del(composantes_2[comp2_max])
                             
     
                         
@@ -2238,19 +2247,20 @@ def new_heuristique(graphe1_deb, graphe2_deb):
     return sous_graphe_commun
     
 if __name__ == '__main__':
-    with open(NEW_EXTENSION_PATH_TAILLE+"fichier_4ybb_6_4.pickle", "rb") as fichier_graphe1 :
+    with open(NEW_EXTENSION_PATH_TAILLE+"fichier_4ybb_14_4.pickle", "rb") as fichier_graphe1 :
                             mon_depickler_1 = pickle.Unpickler(fichier_graphe1)
                             graphe1_vrai = mon_depickler_1.load()
                                            
-    with open(NEW_EXTENSION_PATH_TAILLE+"fichier_1vq8_19_4.pickle", "rb") as fichier_graphe2 :
+    with open(NEW_EXTENSION_PATH_TAILLE+"fichier_4ybb_18_4.pickle", "rb") as fichier_graphe2 :
                             mon_depickler_2 = pickle.Unpickler(fichier_graphe2)
                             graphe2_vrai = mon_depickler_2.load()  
                              
     graphe_commun = new_heuristique(graphe1_vrai, graphe2_vrai)
+    print(graphe_commun.nodes.data())
      
     sim_1 = calcul_sim_aretes_avec_coeff(graphe1_vrai, graphe2_vrai, graphe_commun, "rat", 1, 1, 1)
     print(sim_1)
-    dico_graphe = {(('4ybb', 6), ('1vq8', 19)) : {"graphe" : graphe_commun, "sim" : sim_1}}
+    dico_graphe = {(('4ybb', 14), ('4ybb', 18)) : {"graphe" : graphe_commun, "sim" : sim_1}}
     with open("dico_algo_heuristique.pickle", 'wb') as fichier_graphe :
         mon_pickler = pickle.Pickler(fichier_graphe)
         mon_pickler.dump(dico_graphe) 
@@ -2258,29 +2268,59 @@ if __name__ == '__main__':
     #exit()
     
     
-    with open("dico_algo_heuristique_new_v_e8f97fe.pickle", 'rb') as fichier_graphe :
-        mon_depickler = pickle.Unpickler(fichier_graphe)
-        dico_graphe = mon_depickler.load() 
-        
-        print(dico_graphe[(('5dm6', 9), ('1l8v', 1))])
-        
-        with open("/media/coline/Maxtor/dico_new_avec_derniere_modif_encore_modif_612.pickle", 'rb') as fichier_graphe_exact :
-            mon_depickler_ex = pickle.Unpickler(fichier_graphe_exact)
-            dico_graphe_exact = mon_depickler_ex.load() 
-            
-            print(dico_graphe_exact[(('5dm6', 9), ('1l8v', 1))])
+#     with open("dico_algo_heuristique_new_v_e8f97fe.pickle", 'rb') as fichier_graphe :
+#         mon_depickler = pickle.Unpickler(fichier_graphe)
+#         dico_graphe = mon_depickler.load() 
+#         
+#         print(dico_graphe[(('5dm6', 9), ('1l8v', 1))])
+#         
+#         with open("/media/coline/Maxtor/dico_new_avec_derniere_modif_encore_modif_612.pickle", 'rb') as fichier_graphe_exact :
+#             mon_depickler_ex = pickle.Unpickler(fichier_graphe_exact)
+#             dico_graphe_exact = mon_depickler_ex.load() 
+#             
+#             print(dico_graphe_exact[(('5dm6', 9), ('1l8v', 1))])
             #exit()
+    with open("/media/coline/Maxtor/dico_new_060420_avec_graphes_en_plus.pickle", "rb") as fichier_dico_graphe_algo_exact :
+        mon_depickler = pickle.Unpickler(fichier_dico_graphe_algo_exact)
+        dico_graphe_sim = mon_depickler.load()
+        with open("dico_algo_heuristique_new_v.pickle", 'rb') as fichier_graphe :
+            mon_depickler = pickle.Unpickler(fichier_graphe)
+            dico_graphe = mon_depickler.load() 
             
-    with open("fichier_diff_33bfb11.pickle", 'rb') as fichier_diff :
-            mon_depickler = pickle.Unpickler(fichier_diff)
-            liste_pas_pareil_1 = mon_depickler.load()
-            
-            for elt in liste_pas_pareil_1 : 
-                print(elt)
-            print(len(liste_pas_pareil_1))
-            #exit()
-    
-    with open("fichier_diff_426d48b.pickle", 'rb') as fichier_diff :
+            with open("fichier_diff.pickle", 'rb') as fichier_diff :
+                    mon_depickler = pickle.Unpickler(fichier_diff)
+                    liste_pas_pareil_1 = mon_depickler.load()
+                    
+                    compteur_plus = 0
+                    compteur_moins = 0
+                    for elt in liste_pas_pareil_1 : 
+                        #print(elt)
+                        if elt in dico_graphe_sim.keys() :
+                            if dico_graphe_sim[elt]["sim"] < dico_graphe[elt]["sim"] :
+                                compteur_plus += 1
+                                print(dico_graphe_sim[elt]["sim"])
+                                print(dico_graphe[elt]["sim"])
+                            else :
+                                compteur_moins += 1
+                                print(elt)
+                            
+                        else :
+                            if dico_graphe_sim[(elt[1], elt[0])]["sim"] < dico_graphe[elt]["sim"] :
+                                compteur_plus += 1
+                                print(dico_graphe_sim[(elt[1], elt[0])]["sim"])
+                                print(dico_graphe[elt]["sim"])
+                            else :
+                                compteur_moins += 1
+                                print(elt)
+#                             print(dico_graphe_sim[(elt[1], elt[0])]["sim"])
+#                             print(dico_graphe[elt]["sim"])
+                        
+                    print(len(liste_pas_pareil_1))
+                    print(compteur_plus)
+                    print(compteur_moins)
+                    exit()
+        
+    with open("fichier_diff_289b4cd.pickle", 'rb') as fichier_diff :
             mon_depickler = pickle.Unpickler(fichier_diff)
             liste_pas_pareil_2 = mon_depickler.load()
             
@@ -2494,7 +2534,7 @@ if __name__ == '__main__':
     
     ''' new_heuristique '''
       
-    with open("/media/coline/Maxtor/dico_new_020420.pickle", "rb") as fichier_dico_graphe_algo_exact :
+    with open("/media/coline/Maxtor/dico_new_060420_avec_graphes_en_plus.pickle", "rb") as fichier_dico_graphe_algo_exact :
         mon_depickler = pickle.Unpickler(fichier_dico_graphe_algo_exact)
         dico_graphe_sim = mon_depickler.load()
                       
@@ -2529,65 +2569,67 @@ if __name__ == '__main__':
         liste_ordre_graphes = []
         compter_diff = 0
         for i in range(len(liste_a_garder)) :
-            #if liste_a_garder[i] == ('5dm6',3) :
+            #if liste_a_garder[i] == ('4ybb', 6) :
                 for j in range(i+1, len(liste_a_garder)) :
-                    #if liste_a_garder[j] == ('4ybb', 36) :
-                    if (liste_a_garder[i], liste_a_garder[j]) in dico_graphe_sim.keys() or (liste_a_garder[j], liste_a_garder[i]) in dico_graphe_sim.keys() :
-                        print(compteur)
-                        with open(NEW_EXTENSION_PATH_TAILLE+"fichier_%s_%s_4.pickle"%(liste_a_garder[i][0], liste_a_garder[i][1]), "rb") as fichier_graphe1 :
-                            mon_depickler_1 = pickle.Unpickler(fichier_graphe1)
-                            graphe1_vrai = mon_depickler_1.load()
-                                          
-                        with open(NEW_EXTENSION_PATH_TAILLE+"fichier_%s_%s_4.pickle"%(liste_a_garder[j][0], liste_a_garder[j][1]), "rb") as fichier_graphe2 :
-                            mon_depickler_2 = pickle.Unpickler(fichier_graphe2)
-                            graphe2_vrai = mon_depickler_2.load()  
-                        
-                        print(liste_a_garder[i])
-                        print(liste_a_garder[j])
-                        
-                        sous_graphe_commun_1 = new_heuristique(graphe1_vrai, graphe2_vrai)
-#                         for noeud, data in sous_graphe_commun.nodes(data=True) :
-#                             print(noeud)
-#                             print(data)
-#                         for u,v, data in sous_graphe_commun.edges(data=True) :
-#                             print(u,v)
-#                             print(data)
-#                         print(graphe1_vrai.nodes())
-                        sim_1 = calcul_sim_aretes_avec_coeff(graphe1_vrai, graphe2_vrai, sous_graphe_commun_1, "rat", 1, 1, 1)
-                        
-                        sous_graphe_commun_2 = new_heuristique(graphe2_vrai, graphe1_vrai)
-                        sim_2 = calcul_sim_aretes_avec_coeff(graphe2_vrai, graphe1_vrai, sous_graphe_commun_2, "rat", 1, 1, 1)
-                        
-                        print(sim_1)
-                        print(sim_2)
-                        
-                        #dico_graphe_sim_heuri.update({(liste_a_garder[i], liste_a_garder[j]) : {"graphe" : sous_graphe_commun_1, "sim" : sim_1}})
-                        #dico_graphe_sim_heuri.update({(liste_a_garder[j], liste_a_garder[i]) : {"graphe" : sous_graphe_commun_2, "sim" : sim_2}})
-
-                        
-                        if sim_1 >= sim_2 :
-                           
-                            dico_graphe_sim_heuri.update({(liste_a_garder[i], liste_a_garder[j]) : {"graphe" : sous_graphe_commun_1, "sim" : sim_1}})
+                    #if liste_a_garder[j] == ('6eri', 2) :
+                        if (liste_a_garder[i], liste_a_garder[j]) in dico_graphe_sim.keys() or (liste_a_garder[j], liste_a_garder[i]) in dico_graphe_sim.keys() :
+                            print(compteur)
+                            with open(NEW_EXTENSION_PATH_TAILLE+"fichier_%s_%s_4.pickle"%(liste_a_garder[i][0], liste_a_garder[i][1]), "rb") as fichier_graphe1 :
+                                mon_depickler_1 = pickle.Unpickler(fichier_graphe1)
+                                graphe1_vrai = mon_depickler_1.load()
+                                              
+                            with open(NEW_EXTENSION_PATH_TAILLE+"fichier_%s_%s_4.pickle"%(liste_a_garder[j][0], liste_a_garder[j][1]), "rb") as fichier_graphe2 :
+                                mon_depickler_2 = pickle.Unpickler(fichier_graphe2)
+                                graphe2_vrai = mon_depickler_2.load()  
+                            
+                            print(liste_a_garder[i])
+                            print(liste_a_garder[j])
+                            
+                            sous_graphe_commun_1 = new_heuristique(graphe1_vrai, graphe2_vrai)
+    #                         for noeud, data in sous_graphe_commun.nodes(data=True) :
+    #                             print(noeud)
+    #                             print(data)
+    #                         for u,v, data in sous_graphe_commun.edges(data=True) :
+    #                             print(u,v)
+    #                             print(data)
+    #                         print(graphe1_vrai.nodes())
+                            sim_1 = calcul_sim_aretes_avec_coeff(graphe1_vrai, graphe2_vrai, sous_graphe_commun_1, "rat", 1, 1, 1)
+                            
+                            sous_graphe_commun_2 = new_heuristique(graphe2_vrai, graphe1_vrai)
+                            sim_2 = calcul_sim_aretes_avec_coeff(graphe2_vrai, graphe1_vrai, sous_graphe_commun_2, "rat", 1, 1, 1)
+                            
+                            print(sim_1)
+                            print(sim_2)
+                            
+                            #dico_graphe_sim_heuri.update({(liste_a_garder[i], liste_a_garder[j]) : {"graphe" : sous_graphe_commun_1, "sim" : sim_1}})
+                            #dico_graphe_sim_heuri.update({(liste_a_garder[j], liste_a_garder[i]) : {"graphe" : sous_graphe_commun_2, "sim" : sim_2}})
+    
+                            
+                            if sim_1 >= sim_2 :
                                
-                            if (liste_a_garder[i], liste_a_garder[j]) in dico_graphe_sim.keys():
-                                if sim_1 != dico_graphe_sim[(liste_a_garder[i], liste_a_garder[j])]["sim"] :
-                                    liste_pas_pareil.append((liste_a_garder[i], liste_a_garder[j]))
+                                dico_graphe_sim_heuri.update({(liste_a_garder[i], liste_a_garder[j]) : {"graphe" : sous_graphe_commun_1, "sim" : sim_1}})
+                                   
+                                if (liste_a_garder[i], liste_a_garder[j]) in dico_graphe_sim.keys():
+                                    if sim_1 != dico_graphe_sim[(liste_a_garder[i], liste_a_garder[j])]["sim"] :
+                                        liste_pas_pareil.append((liste_a_garder[i], liste_a_garder[j]))
+                                else :
+                                    if sim_1 != dico_graphe_sim[(liste_a_garder[j], liste_a_garder[i])]["sim"] :
+                                        liste_pas_pareil.append((liste_a_garder[i], liste_a_garder[j]))  
                             else :
-                                if sim_1 != dico_graphe_sim[(liste_a_garder[j], liste_a_garder[i])]["sim"] :
-                                    liste_pas_pareil.append((liste_a_garder[i], liste_a_garder[j]))  
-                        else :
-                            dico_graphe_sim_heuri.update({(liste_a_garder[j], liste_a_garder[i]) : {"graphe" : sous_graphe_commun_2, "sim" : sim_2}})
-                               
-                            if (liste_a_garder[i], liste_a_garder[j]) in dico_graphe_sim.keys():
-                                if sim_2 != dico_graphe_sim[(liste_a_garder[i], liste_a_garder[j])]["sim"] :
-                                    liste_pas_pareil.append((liste_a_garder[j], liste_a_garder[i]))
-                            else :
-                                if sim_2 != dico_graphe_sim[(liste_a_garder[j], liste_a_garder[i])]["sim"] :
-                                    liste_pas_pareil.append((liste_a_garder[j], liste_a_garder[i]))  
-                          
-                        if sim_1 != sim_2 :
-                            liste_ordre_graphes.append((liste_a_garder[j], liste_a_garder[i]))
-                            compter_diff += 1
+                                dico_graphe_sim_heuri.update({(liste_a_garder[j], liste_a_garder[i]) : {"graphe" : sous_graphe_commun_2, "sim" : sim_2}})
+                                print("petit rat") 
+                                if (liste_a_garder[i], liste_a_garder[j]) in dico_graphe_sim.keys():
+                                    print(dico_graphe_sim[(liste_a_garder[i], liste_a_garder[j])]["sim"])
+                                    if sim_2 != dico_graphe_sim[(liste_a_garder[i], liste_a_garder[j])]["sim"] :
+                                        liste_pas_pareil.append((liste_a_garder[j], liste_a_garder[i]))
+                                else :
+                                    print(dico_graphe_sim[(liste_a_garder[j], liste_a_garder[i])]["sim"])
+                                    if sim_2 != dico_graphe_sim[(liste_a_garder[j], liste_a_garder[i])]["sim"] :
+                                        liste_pas_pareil.append((liste_a_garder[j], liste_a_garder[i]))  
+                              
+                            if sim_1 != sim_2 :
+                                liste_ordre_graphes.append((liste_a_garder[j], liste_a_garder[i]))
+                                compter_diff += 1
                                 
                         compteur += 1
 #                         
@@ -2597,7 +2639,7 @@ if __name__ == '__main__':
         with open("fichier_diff.pickle", 'wb') as fichier_diff :
             mon_pickler = pickle.Pickler(fichier_diff)
             mon_pickler.dump(liste_pas_pareil)
-            
+             
         with open("fichier_ordre_graphes.pickle", 'wb') as fichier_ordre :
             mon_pickler = pickle.Pickler(fichier_ordre)
             mon_pickler.dump(liste_ordre_graphes)
@@ -2606,7 +2648,7 @@ if __name__ == '__main__':
         with open("dico_algo_heuristique_new_v.pickle", 'wb') as fichier_sortie :
             mon_pickler = pickle.Pickler(fichier_sortie)
             mon_pickler.dump(dico_graphe_sim_heuri)
-            
+#             
         tps2 = time.time()
         print("temps d'execution : ")
         print(str(tps2-tps1))
