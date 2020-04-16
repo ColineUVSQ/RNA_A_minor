@@ -31,7 +31,10 @@ def approx_intra_sim(wsgraphe, centre) :
 #             if noeud != centre :
 #                 somme_sim += wsgraphe.edges[centre,noeud]["poids"]
         for u,v,data in wsgraphe.edges(data=True) :
-            somme_sim += data["sim"]
+            if "sim" in data.keys() :
+                somme_sim += data["sim"]
+            else :
+                somme_sim += data["rmsd"]
                 
         return somme_sim/((wsgraphe.number_of_nodes() * (wsgraphe.number_of_nodes() - 1))/2)
 
@@ -147,10 +150,30 @@ def algo_principal(graphe_depart):
                 cluster.extend(graphe_depart[elt[0]])
                 if calcul_densite(cluster, graphe_depart) > 0.7 :
                     centres.append(elt[0])
+                    
             
     print(centres)
     print(len(centres))
     
+    ## version non recouvrant 
+    
+#     clusters = [[]]
+#     ajouter = []
+#     for elt in centres :
+#         if elt not in ajouter :
+#             cluster = [elt]
+#             ajouter.append(elt)
+#             for voisin in graphe_depart[elt] :## ajout au cluster de tous les sommets adjacents au sommet seed
+#                 if voisin not in ajouter :
+#                     cluster.append(voisin)
+#                     ajouter.append(voisin)
+#              
+#             clusters.append(cluster)
+#     print(clusters)
+#     print(len(clusters))
+    
+    ## version recouvrant
+     
     clusters = [[]]
     for elt in centres :
         cluster = [elt]
@@ -158,22 +181,23 @@ def algo_principal(graphe_depart):
         clusters.append(cluster)
     print(clusters)
     print(len(clusters))
-    
+      
+      
     a_enlever = []
     for cluster in clusters :
         print("cluster")
         ## version supprimer les clusters de densite trop faible
 #         if calcul_densite(cluster, graphe_depart) < 0.77 :
 #             a_enlever.append(cluster)
-    
+      
         #if cluster == [86, 9, 16, 34, 50]:
         for c in cluster :
                 print(c)
-    
+      
 #     for elt in a_enlever :
 #         clusters.remove(elt)
 #         centres.remove(elt[0])
-        
+          
     ## Elimination des centres inutiles
     dico_degres_centres = {}
     dico_analyses_centres = {}
@@ -184,7 +208,7 @@ def algo_principal(graphe_depart):
         dico_analyses_centres.update({elt : "non_analyse"})
         dico_linked_centres.update({elt : []})
         dico_seed_centres.update({elt : "non_seed"})
-       
+         
     dico_degres_ordonnes = sorted(dico_degres_centres.items(), key=lambda t: t[1], reverse=True)
     for elt in dico_degres_ordonnes :
         if elt[0] in centres : ## pour verifier que l element courant est encore dans les centres 
@@ -201,7 +225,7 @@ def algo_principal(graphe_depart):
                         print(adj)
                         autres_centres = list(centres)
                         autres_centres.remove(voisin)
-                        
+                          
                         if sommet_couvert(graphe_depart, autres_centres, adj) :
                             nb_adjacents_partages += 1
                             print("petit rat")
@@ -209,36 +233,39 @@ def algo_principal(graphe_depart):
                             nb_adjacents_non_partages += 1
                             adjacents_non_partages.append(adj)
                             print("gros rat")
-                    
+                      
                     print(nb_adjacents_non_partages)
                     print(nb_adjacents_partages)
-                           
+                             
                     if nb_adjacents_partages > nb_adjacents_non_partages :
                         print("ramousnif")
                         centres.remove(voisin)
                         dico_analyses_centres.pop(voisin, None) ## pour supprimer une cle
                         dico_linked_centres.pop(voisin, None)
-                        
+                          
                         dico_linked_centres[elt[0]].extend(adjacents_non_partages)
                     else :
                         dico_analyses_centres[voisin] = "analyse"
-                        
+                          
             dico_seed_centres[elt[0]] = "seed"
-    
+      
     print(dico_seed_centres)   
-    
+      
     ## Creation clusters
-    
+    ## version recouvrant
     clusters = [[]]
     for cle in dico_seed_centres.keys() :
         if dico_seed_centres[cle] == "seed" :
             cluster = [cle]
             cluster.extend(graphe_depart[cle]) ## ajout au cluster de tous les sommets adjacents au sommet seed
             cluster.extend(dico_linked_centres[cle]) ## ajout au cluster de tous les sommets linked potentiels
-            
+              
             clusters.append(cluster)
     print(clusters)
     print(len(clusters))
+    
+    
+    
     
     tab_clusters = []
     for cluster in clusters :
@@ -421,18 +448,21 @@ def clustering_pour_complet(liste_num_ARN, seuil):
                     liste_a_garder_noms = mon_depickler.load()    
                        
                     for element in liste_a_garder_noms :
-                        if resolutions[element[0]] <= 3 :
+                        if resolutions[element[0]] <= 3 and element[0] != '6hrm':
                             liste_tout.append((elt, element))
     graphe_complet = nx.Graph()
     for elt in liste_tout :
         graphe_complet.add_node(elt[1], type=elt[0], nom=elt[1])
     
-    with open("/media/coline/Maxtor/dico_new_avec_derniere_modif_encore_modif_612.pickle", 'rb') as fichier_graphe :
+    #with open("/media/coline/Maxtor/dico_new_avec_derniere_modif_encore_modif_030220.pickle", 'rb') as fichier_graphe :
+    with open("/media/coline/Maxtor/dico_new_100320_sim_par_branche_0.65.pickle", 'rb') as fichier_graphe :    
+
         mon_depickler_graphe = pickle.Unpickler(fichier_graphe)
         dico_complet = mon_depickler_graphe.load() 
         #print(liste)
         
         for cle in dico_complet.keys() :
+            if cle[0][0] != '6hrm' and cle[1][0] != '6hrm' :
                 if isinstance(cle[0], tuple) :
                     if isinstance(dico_complet[cle], dict) :
                         graphe_complet.add_edge(cle[0], cle[1], sim=dico_complet[cle]["sim"])
@@ -500,11 +530,11 @@ def clustering_pour_complet(liste_num_ARN, seuil):
        
         #print(clusters)
         
-        with open("/media/coline/Maxtor/clustering_perez_%s_new_data_res_inf_3_avec_modif_612.pickle"%liste_num_ARN, 'wb') as fichier_sortie :
+        with open("/media/coline/Maxtor/clustering_perez_tot_new_data_100320_sim_par_branche_0.65.pickle", 'wb') as fichier_sortie :
             mon_pickler = pickle.Pickler(fichier_sortie)
             mon_pickler.dump(clusters)
          
-        with open("/media/coline/Maxtor/clustering_perez_%s_new_data_res_inf_3_avec_modif_relevance_612.pickle"%liste_num_ARN, 'wb') as fichier_relevance :
+        with open("/media/coline/Maxtor/clustering_perez_dico_relevance_tot_new_data_100320_sim_par_branche_0.65.pickle", 'wb') as fichier_relevance :
             mon_pickler = pickle.Pickler(fichier_relevance)
             mon_pickler.dump(dico_relevance)
         
@@ -514,7 +544,8 @@ if __name__ == '__main__':
     types = ["23S", "18S", "16S","Ribozyme", "Riboswitch", "SRP", "28S", "25S", "Intron", "arnt_16S_arnm", "arnt_16S"]
 #     distrib_nb_clusters = []
 #     for seuil in np.arange(0.0, 1.1, 0.1) :
-    clustering_pour_complet(types, 0.6)
+    clustering_pour_complet(types, 0.75)
+    exit()
 #         print(seuil)
 #     print(distrib_nb_clusters)
 #     sns.distplot(distrib_nb_clusters)

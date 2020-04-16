@@ -17,6 +17,7 @@ from recup_data.constantes import EXTENSION_PATH_TAILLE, EXTENSION_PATH,\
     NEW_EXTENSION_PATH_TAILLE
 from collections import OrderedDict
 from recup_data.draw_extension import draw_extension
+from recup_data.draw_isomorphism_structure import draw_isomorphism_struct
 
 '''issu du code fourni par Vladimir utilise dans CaRNAval'''
 def neighbors(s1,s2):
@@ -158,7 +159,7 @@ def isomorphisme_extension_to_global(graphe_commun, graphe_ext_1, graphe_ext_2, 
         nb_voisins = 0
         for voisin in graphe_commun[noeud] :
             for edge in graphe_commun[noeud][voisin] :
-                if graphe_commun[noeud][voisin][edge]["type"] != 'B53' :
+                if graphe_commun[noeud][voisin][edge]["label"] != 'B53' :
                     nb_voisins += 1
         if graphe_ext_1.nodes[noeud[0]]["type"] != -1 and nb_voisins > 0 :
             pos_1 = graphe_ext_1.nodes[noeud[0]]["position"]
@@ -171,7 +172,7 @@ def isomorphisme_extension_to_global(graphe_commun, graphe_ext_1, graphe_ext_2, 
             if graphe_ext_1.nodes[noeud[0]]["type"] == 1 :
                 for voisin in graphe_commun[noeud] :
                     for edge in graphe_commun[noeud][voisin] : 
-                        if graphe_commun[noeud][voisin][edge]["type"] == 'CWW' and graphe_ext_1.nodes[voisin[0]]["type"] == 1 :
+                        if graphe_commun[noeud][voisin][edge]["label"] == 'CWW' and graphe_ext_1.nodes[voisin[0]]["label"] == 1 :
                             can_interne = True
 #             print(pos_1)
 #             print(pos_2)       
@@ -204,10 +205,10 @@ def isomorphisme_extension_to_global(graphe_commun, graphe_ext_1, graphe_ext_2, 
                         graphe_global_commun_1.add_node(i, **graphe_global_1.nodes[i])
             
             can_interne = False
-            if graphe_ext_2.nodes[noeud[1]]["type"] == 1 :
+            if graphe_ext_2.nodes[noeud[1]]["label"] == 1 :
                 for voisin in graphe_commun[noeud] :
                     for edge in graphe_commun[noeud][voisin] : 
-                        if graphe_commun[noeud][voisin][edge]["type"] == 'CWW' and graphe_ext_2.nodes[voisin[1]]["type"] == 1 :
+                        if graphe_commun[noeud][voisin][edge]["label"] == 'CWW' and graphe_ext_2.nodes[voisin[1]]["label"] == 1 :
                             can_interne = True
 #             print(pos_1)
 #             print(pos_2) 
@@ -449,6 +450,325 @@ def isomorphisme_extension_to_global(graphe_commun, graphe_ext_1, graphe_ext_2, 
     print(graphe_global_commun_2.nodes.data()) 
     
     return graphe_global_commun_1, graphe_global_commun_2
+
+
+'''03/03/20 Transformation du graphe commun a deux graphes d'extension en un graphe global
+(decontraction des sommets de type 1 et de type 0, recuperation des aretes non covalentes associes aux sommets de type 1 etc ...) 
+ne marche pas pour tous les cas'''
+def isomorphisme_extension_to_global_version_new_data(graphe_commun, graphe_ext_1, graphe_ext_2, graphe_global_1, graphe_global_2):
+    liste_motif = [(1,1), (2,2), (3,3), (4,4), (5,5)]
+    liste_aretes_motif = [((1,1),(2,2)), ((2,2),(1,1)), ((1,1), (5,5)), ((5,5), (1,1)), ((3,3),(4,4)), ((4,4), (3,3)), ((2,2), (5,5)), ((5,5), (2,2)), ((3,3), (1,1)), ((2,2), (4,4))]
+    
+    graphe_global_commun_1 = nx.MultiDiGraph()
+    graphe_global_commun_2 = nx.MultiDiGraph()
+    for noeud in graphe_commun.nodes() :
+        nb_voisins = 0
+        for voisin in graphe_commun[noeud] :
+            for edge in graphe_commun[noeud][voisin] :
+                if graphe_commun[noeud][voisin][edge]["label"] != 'B53' :
+                    nb_voisins += 1
+        if graphe_ext_1.nodes[noeud[0]]["type"] != -1 and nb_voisins > 0 :
+            pos_1 = graphe_ext_1.nodes[noeud[0]]["position"]
+            pos_2 = graphe_ext_2.nodes[noeud[1]]["position"]
+            
+            mini_poids = min(graphe_ext_1.nodes[noeud[0]]["poids"], graphe_ext_2.nodes[noeud[1]]["poids"])
+            
+            ## verfie si le noeud n est pas implique dans une liaison 1-1 interne au graphe
+            can_interne = False
+            if graphe_ext_1.nodes[noeud[0]]["type"] == 1 :
+                for voisin in graphe_commun[noeud] :
+                    for edge in graphe_commun[noeud][voisin] : 
+                        if graphe_commun[noeud][voisin][edge]["label"] == 'CWW' and graphe_ext_1.nodes[voisin[0]]["type"] == 1 :
+                            can_interne = True
+#             print(pos_1)
+#             print(pos_2)       
+#             print(graphe_ext_1.nodes[noeud[0]]["chaine"])         
+#             print(can_interne)
+            if not can_interne :
+                for i in range(pos_1[0], min(pos_1[0]+mini_poids, pos_1[1]+1)) :
+                    if noeud in liste_motif : 
+                        graphe_global_1.nodes[(graphe_ext_1.nodes[noeud[0]]["num_ch"],i)].update({'motif' : True})
+                    else :
+                        graphe_global_1.nodes[(graphe_ext_1.nodes[noeud[0]]["num_ch"],i)].update({'motif' : False})
+                    graphe_global_commun_1.add_node((graphe_ext_1.nodes[noeud[0]]["num_ch"],i), **graphe_global_1.nodes[(graphe_ext_1.nodes[noeud[0]]["num_ch"],i)])
+            else :
+                if 1 in graphe_ext_1.nodes[noeud[0]]["chaine"] or 4 in graphe_ext_1.nodes[noeud[0]]["chaine"] :
+                    for i in range(pos_1[0], min(pos_1[0]+mini_poids, pos_1[1]+1)) :
+                        if noeud in liste_motif : 
+                            graphe_global_1.nodes[(graphe_ext_1.nodes[noeud[0]]["num_ch"],i)].update({'motif' : True})
+                        else :
+                            graphe_global_1.nodes[(graphe_ext_1.nodes[noeud[0]]["num_ch"],i)].update({'motif' : False})
+                        graphe_global_commun_1.add_node((graphe_ext_1.nodes[noeud[0]]["num_ch"],i), **graphe_global_1.nodes[(graphe_ext_1.nodes[noeud[0]]["num_ch"],i)]) 
+                else :
+                    print("petit rat")
+                    for i in np.arange(pos_1[1], min(pos_1[1]-mini_poids, pos_1[0]), -1) :
+                        print("tout petit rat")
+                        print(i)
+                        if noeud in liste_motif : 
+                            graphe_global_1.nodes[(graphe_ext_1.nodes[noeud[0]]["num_ch"],i)].update({'motif' : True})
+                        else :
+                            graphe_global_1.nodes[(graphe_ext_1.nodes[noeud[0]]["num_ch"],i)].update({'motif' : False})
+                        graphe_global_commun_1.add_node((graphe_ext_1.nodes[noeud[0]]["num_ch"],i), **graphe_global_1.nodes[(graphe_ext_1.nodes[noeud[0]]["num_ch"],i)])
+            
+            can_interne = False
+            if graphe_ext_2.nodes[noeud[1]]["type"] == 1 :
+                for voisin in graphe_commun[noeud] :
+                    for edge in graphe_commun[noeud][voisin] : 
+                        if graphe_commun[noeud][voisin][edge]["label"] == 'CWW' and graphe_ext_2.nodes[voisin[1]]["type"] == 1 :
+                            can_interne = True
+#             print(pos_1)
+#             print(pos_2) 
+#             print(graphe_ext_2.nodes[noeud[1]]["chaine"])
+#             print(can_interne)
+            
+            if not can_interne :
+                for i in range(pos_2[0], min(pos_2[0]+mini_poids, pos_2[1]+1)) :
+                    if noeud in liste_motif : 
+                        graphe_global_2.nodes[(graphe_ext_2.nodes[noeud[1]]["num_ch"],i)].update({'motif' : True})
+                    else :
+                        graphe_global_2.nodes[(graphe_ext_2.nodes[noeud[1]]["num_ch"],i)].update({'motif' : False})
+                    graphe_global_commun_2.add_node((graphe_ext_2.nodes[noeud[1]]["num_ch"],i), **graphe_global_2.nodes[(graphe_ext_2.nodes[noeud[1]]["num_ch"],i)])
+            else :
+                if 1 in graphe_ext_2.nodes[noeud[1]]["chaine"] or 4 in graphe_ext_2.nodes[noeud[1]]["chaine"] :
+                    for i in range(pos_2[0], min(pos_2[0]+mini_poids, pos_2[1]+1)) :
+                        if noeud in liste_motif : 
+                            graphe_global_2.nodes[(graphe_ext_2.nodes[noeud[1]]["num_ch"],i)].update({'motif' : True})
+                        else :
+                            graphe_global_2.nodes[(graphe_ext_2.nodes[noeud[1]]["num_ch"],i)].update({'motif' : False})
+                        graphe_global_commun_2.add_node((graphe_ext_2.nodes[noeud[1]]["num_ch"],i), **graphe_global_2.nodes[(graphe_ext_2.nodes[noeud[1]]["num_ch"],i)]) 
+                else :
+                    print("petit rat")
+                    for i in np.arange(pos_2[1], min(pos_2[1]-mini_poids, pos_2[0]), -1) :
+                        print("tout petit rat")
+                        print(i)
+                        if noeud in liste_motif : 
+                            graphe_global_2.nodes[(graphe_ext_2.nodes[noeud[1]]["num_ch"],i)].update({'motif' : True})
+                        else :
+                            graphe_global_2.nodes[(graphe_ext_2.nodes[noeud[1]]["num_ch"],i)].update({'motif' : False})
+                        graphe_global_commun_2.add_node((graphe_ext_2.nodes[noeud[1]]["num_ch"],i), **graphe_global_2.nodes[(graphe_ext_2.nodes[noeud[1]]["num_ch"],i)])
+    print("gros gros rat")
+    print(graphe_global_commun_1.nodes.data())            
+    for u,v,data in graphe_commun.edges(data=True) :
+#         print((u,v))
+        if data["label"] != '0' :
+            pos_1_1 = graphe_ext_1.nodes[u[0]]["position"]
+            pos_1_2 = graphe_ext_1.nodes[v[0]]["position"]
+            
+            pos_2_1 = graphe_ext_2.nodes[u[1]]["position"]
+            pos_2_2 = graphe_ext_2.nodes[v[1]]["position"]
+            
+            for i in range(pos_1_1[0], pos_1_1[1]+1) :
+                num_noeud = (graphe_ext_1.nodes[u[0]]["num_ch"], i)
+                for voisin in graphe_global_1[num_noeud] :
+                    for edge in graphe_global_1[num_noeud][voisin] :
+                        if voisin[0] == graphe_ext_1.nodes[u[0]]["num_ch"] and voisin[1] >= pos_1_2[0] and voisin[1] <= pos_1_2[1] and graphe_global_1[num_noeud][voisin][edge]["label"][:3] == data["label"][:3] :
+                            
+                            if (num_noeud,voisin) not in graphe_global_commun_1 and num_noeud in graphe_global_commun_1.nodes() and voisin in graphe_global_commun_1.nodes():
+                                if (u,v) in liste_aretes_motif :
+                                    graphe_global_1[num_noeud][voisin][edge].update({"motif" : True})
+                                else :
+                                    graphe_global_1[num_noeud][voisin][edge].update({"motif" : False})
+                                graphe_global_commun_1.add_edge(num_noeud,voisin, **graphe_global_1[num_noeud][voisin][edge])
+                            if (voisin, num_noeud) not in graphe_global_commun_1 and graphe_global_1[num_noeud][voisin][edge]["label"] != 'B53' and num_noeud in graphe_global_commun_1.nodes() and voisin in graphe_global_commun_1.nodes() :
+                                if (v,u) in liste_aretes_motif :
+                                    graphe_global_1[voisin][num_noeud][edge].update({"motif" : True})
+                                else :
+                                    graphe_global_1[voisin][num_noeud][edge].update({"motif" : False})
+                                graphe_global_commun_1.add_edge(voisin, num_noeud, **graphe_global_1[voisin][num_noeud][edge])
+#                             print("petit rat")
+#                             print(i)
+#                             print(voisin)
+            
+            
+            for i in range(pos_2_1[0], pos_2_1[1]+1) :
+                num_noeud = (graphe_ext_2.nodes[u[1]]["num_ch"], i)
+                for voisin in graphe_global_2[num_noeud] :
+                    for edge in graphe_global_2[num_noeud][voisin] :
+                        if voisin[0] == graphe_ext_2.nodes[u[1]]["num_ch"] and voisin[1] >= pos_2_2[0] and voisin[1] <= pos_2_2[1] and graphe_global_2[num_noeud][voisin][edge]["label"][:3] == data["label"][:3] :
+                            if (num_noeud,voisin) not in graphe_global_commun_2 and num_noeud in graphe_global_commun_2.nodes() and voisin in graphe_global_commun_2.nodes():
+                                if (u,v) in liste_aretes_motif :
+                                    graphe_global_2[num_noeud][voisin][edge].update({"motif" : True})
+                                else :
+                                    graphe_global_2[num_noeud][voisin][edge].update({"motif" : False})
+                                graphe_global_commun_2.add_edge(num_noeud,voisin, **graphe_global_2[num_noeud][voisin][edge])
+                            if (voisin, num_noeud) not in graphe_global_commun_2 and graphe_global_2[num_noeud][voisin][edge]["label"] != 'B53' and num_noeud in graphe_global_commun_2.nodes() and voisin in graphe_global_commun_2.nodes() :
+                                if (v,u) in liste_aretes_motif :
+                                    graphe_global_2[voisin][num_noeud][edge].update({"motif" : True})
+                                else :
+                                    graphe_global_2[voisin][num_noeud][edge].update({"motif" : False})                                
+                                graphe_global_commun_2.add_edge(voisin, num_noeud, **graphe_global_2[voisin][num_noeud][edge])
+#                             print("petit rat")
+#                             print(i)
+#                             print(voisin)
+            
+            for i in range(pos_1_1[0], pos_1_1[1]+1) :
+                num_noeud = (graphe_ext_1.nodes[u[0]]["num_ch"], i)
+                for pred_1 in graphe_global_1.predecessors(num_noeud) :
+                    for edge_1 in graphe_global_1[pred_1][num_noeud] :
+                        for j in range(pos_2_1[0], pos_2_1[1]+1) :
+                            num_noeud_2 = (graphe_ext_2.nodes[u[1]]["num_ch"], j)
+                            for pred_2 in graphe_global_2.predecessors(num_noeud_2) :
+                                for edge_2 in graphe_global_2[pred_2][num_noeud_2] :
+                                    if pred_1 == graphe_ext_1.nodes[u[0]]["num_ch"] and pred_1[1] >= pos_1_2[0] and pred_1[1] <= pos_1_2[1] and graphe_global_1[pred_1][num_noeud][edge_1]["label"] == data["label"] and data["label"] == 'B53' and pred_2 >= pos_2_2[0] and pred_2 <= pos_2_2[1] and graphe_global_2[pred_2][num_noeud_2][edge_2]["label"] == data["label"] and data["label"] == 'B53' :
+                                        if (pred_1, num_noeud) not in graphe_global_commun_1.edges() and pred_1 in graphe_global_commun_1.nodes() and num_noeud in graphe_global_commun_1.nodes() and (pred_2, num_noeud_2) not in graphe_global_commun_2.edges() and pred_2 in graphe_global_commun_2.nodes() and num_noeud_2 in graphe_global_commun_2.nodes() :
+                                            if (u,v) in liste_aretes_motif or (v,u) in liste_aretes_motif :
+                                                graphe_global_1[pred_1][num_noeud][edge_1].update({"motif" : True})
+                                                graphe_global_2[pred_2][num_noeud_2][edge_2].update({"motif" : True})
+                                            else :
+                                                graphe_global_1[pred_1][num_noeud][edge_1].update({"motif" : False})
+                                                graphe_global_2[pred_2][num_noeud_2][edge_2].update({"motif" : False})
+                                            graphe_global_commun_1.add_edge(pred_1, num_noeud, **graphe_global_1[pred_1][num_noeud][edge_1])
+                                            graphe_global_commun_2.add_edge(pred_2, num_noeud_2, **graphe_global_2[pred_2][num_noeud_2][edge_2])
+                
+            if graphe_ext_1.nodes[u[0]]["type"] == 0 or graphe_ext_1.nodes[v[0]]["type"] == 0 :
+                    if graphe_ext_1.nodes[u[0]]["type"] == 0 :
+                        pos_1 = graphe_ext_1.nodes[u[0]]["position"]
+                        pos_2 = graphe_ext_2.nodes[u[1]]["position"]
+                        ch_noeud_1 = graphe_ext_1.nodes[u[0]]["num_ch"]
+                        ch_noeud_2 = graphe_ext_2.nodes[u[1]]["num_ch"]
+                        mini_poids = min(graphe_ext_1.nodes[u[0]]["poids"], graphe_ext_2.nodes[u[1]]["poids"])
+                    else :
+                        pos_1 = graphe_ext_1.nodes[v[0]]["position"]
+                        pos_2 = graphe_ext_2.nodes[v[1]]["position"]
+                        ch_noeud_1 = graphe_ext_1.nodes[v[0]]["num_ch"]
+                        ch_noeud_2 = graphe_ext_2.nodes[v[1]]["num_ch"]
+                        mini_poids = min(graphe_ext_1.nodes[v[0]]["poids"], graphe_ext_2.nodes[v[1]]["poids"])
+                    compteur = 0
+                    for i in range(pos_1[0], min(pos_1[0]+mini_poids, pos_1[1]+1)) :
+                        if compteur > 0 :
+                            graphe_global_commun_1.add_edge((ch_noeud_1, i-1), (ch_noeud_1, i), label='B53', motif=False)
+                        compteur += 1
+                    
+                    compteur = 0
+                    for i in range(pos_2[0], min(pos_2[0]+mini_poids, pos_2[1]+1)) :
+                        if compteur > 0 :
+                            graphe_global_commun_2.add_edge((ch_noeud_2, i-1), (ch_noeud_2, i), label='B53', motif=False)
+                        compteur += 1
+                          
+        elif graphe_ext_1.nodes[u[0]]["type"] == 1 or graphe_ext_1.nodes[v[0]]["type"] == 1 :
+            if graphe_ext_1.nodes[u[0]]["type"] == 1 :
+                pos_1 = graphe_ext_1.nodes[u[0]]["position"]
+                pos_2 = graphe_ext_2.nodes[u[1]]["position"]
+                ch_noeud_1 = graphe_ext_1.nodes[u[0]]["num_ch"]
+                ch_noeud_2 = graphe_ext_2.nodes[u[1]]["num_ch"]
+                mini_poids = min(graphe_ext_1.nodes[u[0]]["poids"], graphe_ext_2.nodes[u[1]]["poids"])
+            else :
+                pos_1 = graphe_ext_1.nodes[v[0]]["position"]
+                pos_2 = graphe_ext_2.nodes[v[1]]["position"]
+                ch_noeud_1 = graphe_ext_1.nodes[v[0]]["num_ch"]
+                ch_noeud_2 = graphe_ext_2.nodes[v[1]]["num_ch"]
+                mini_poids = min(graphe_ext_1.nodes[v[0]]["poids"], graphe_ext_2.nodes[v[1]]["poids"])
+            
+            
+            compteur = 0  
+            for i in range(pos_1[0], min(pos_1[0]+mini_poids, pos_1[1]+1)) :
+                if compteur > 0 :
+                    graphe_global_commun_1.add_edge((ch_noeud_1, i-1), (ch_noeud_1, i), label='B53', motif=False)
+                for voisin in graphe_global_1[(ch_noeud_1, i)] :
+                    for edge in graphe_global_1[(ch_noeud_1, i)][voisin] :
+                        if graphe_global_1[(ch_noeud_1, i)][voisin][edge]["label"] == 'CWW' :
+                            graphe_global_1.nodes[voisin].update({'motif' : False})
+                            graphe_global_commun_1.add_node(voisin, **graphe_global_1.nodes[voisin])
+                            if ((ch_noeud_1, i),voisin) not in graphe_global_commun_1.edges() and (ch_noeud_1, i) in graphe_global_commun_1.nodes() and voisin in graphe_global_commun_1.nodes():
+                                graphe_global_1[(ch_noeud_1, i)][voisin][edge].update({'motif' : False})
+                                graphe_global_commun_1.add_edge((ch_noeud_1, i),voisin, **graphe_global_1[(ch_noeud_1, i)][voisin][edge])
+                            if (voisin,(ch_noeud_1, i)) not in graphe_global_commun_1.edges() and (ch_noeud_1, i) in graphe_global_commun_1.nodes() and voisin in graphe_global_commun_1.nodes() :
+                                graphe_global_1[voisin][(ch_noeud_1, i)][edge].update({'motif' : False})
+                                graphe_global_commun_1.add_edge(voisin, (ch_noeud_1, i), **graphe_global_1[voisin][(ch_noeud_1, i)][edge])
+                                
+                            if min(pos_1[0]+mini_poids, pos_1[1]+1) - pos_1[0] - 1 > 0 and compteur > 0:
+#                                 print("ramou")
+#                                 print(voisin)
+#                                 print(pos_1)
+#                                 print(mini_poids)
+                                graphe_global_commun_1.add_edge(voisin, (voisin[0], voisin[1]+1), label='B53', motif=False)
+#                                 print(graphe_global_commun_1.edges.data())
+                compteur += 1
+            
+            compteur = 0                  
+            for i in range(pos_2[0], min(pos_2[0]+mini_poids, pos_2[1]+1)) :
+                if compteur > 0 :
+                    graphe_global_commun_2.add_edge((ch_noeud_2, i-1), (ch_noeud_2, i), label='B53', motif=False)
+                for voisin in graphe_global_2[(ch_noeud_2, i)] :
+                    for edge in graphe_global_2[(ch_noeud_2, i)][voisin] :
+                        if graphe_global_2[(ch_noeud_2, i)][voisin][edge]["label"] == 'CWW' :
+                            graphe_global_2.nodes[voisin].update({'motif' : False})
+                            graphe_global_commun_2.add_node(voisin, **graphe_global_2.nodes[voisin])
+                            if ((ch_noeud_2, i),voisin) not in graphe_global_commun_2.edges() and (ch_noeud_2, i) in graphe_global_commun_2.nodes() and voisin in graphe_global_commun_2.nodes():
+                                graphe_global_2[(ch_noeud_2, i)][voisin][edge].update({'motif' : False})
+                                graphe_global_commun_2.add_edge((ch_noeud_2, i),voisin, **graphe_global_2[(ch_noeud_2, i)][voisin][edge])
+                            if (voisin, (ch_noeud_2, i)) not in graphe_global_commun_2.edges() and (ch_noeud_2, i) in graphe_global_commun_2.nodes() and voisin in graphe_global_commun_2.nodes():
+                                graphe_global_2[voisin][(ch_noeud_2, i)][edge].update({'motif' : False})
+                                graphe_global_commun_2.add_edge(voisin, (ch_noeud_2, i), **graphe_global_2[voisin][(ch_noeud_2, i)][edge])
+                                
+                            if min(pos_2[0]+mini_poids, pos_2[1]+1) - pos_2[0] - 1 > 0 and compteur > 0 :
+#                                 print("ramou")
+#                                 print(voisin)
+                                graphe_global_commun_2.add_edge(voisin, (voisin[0], voisin[1]+1), label='B53', motif=False)
+                compteur += 1
+    
+    ##liens B53 motif qui manquent
+    pos_2_1 = (graphe_ext_1.nodes[2]["num_ch"], graphe_ext_1.nodes[2]["position"][0])
+    pos_4_1 = (graphe_ext_1.nodes[4]["num_ch"], graphe_ext_1.nodes[4]["position"][0])
+    
+    pos_2_2 = (graphe_ext_2.nodes[2]["num_ch"], graphe_ext_2.nodes[2]["position"][0])
+    pos_4_2 = (graphe_ext_2.nodes[4]["num_ch"], graphe_ext_2.nodes[4]["position"][0])
+    
+    for voisin_1 in graphe_global_1[pos_2_1] : 
+#         print(voisin)
+        for edge_1 in graphe_global_1[pos_2_1][voisin_1] :
+                if  graphe_global_1[pos_2_1][voisin_1][edge_1]["label"] == 'CWW' :
+                    for voisin_2 in graphe_global_2[pos_2_2] : 
+                        for edge_2 in graphe_global_2[pos_2_2][voisin_2] :
+                            if  graphe_global_2[pos_2_2][voisin_2][edge_2]["label"] == 'CWW' :
+                                if ((voisin_2[0], voisin_2[1]-1),voisin_2) not in graphe_global_commun_2.edges() and voisin_2 in graphe_global_commun_2.nodes() and (voisin_2[0], voisin_2[1]-1) in graphe_global_commun_2.nodes() and ((voisin_1[0], voisin_1[1]-1),voisin_1) not in graphe_global_commun_1.edges() and voisin_1 in graphe_global_commun_1.nodes() and (voisin_1[0], voisin_1[1]-1) in graphe_global_commun_1.nodes():
+                                    graphe_global_commun_1.add_edge((voisin_1[0], voisin_1[1]-1),voisin_1, label='B53', motif=True)
+                                    graphe_global_commun_2.add_edge((voisin_2[0], voisin_2[1]-1),voisin_2, label='B53', motif=True)     
+                        
+    for voisin_1 in graphe_global_1[(pos_2_1[0], pos_2_1[1]-1)] : 
+#         print(voisin)
+        for edge_1 in graphe_global_1[(pos_2_1[0], pos_2_1[1]-1)][voisin_1] :
+                if  graphe_global_1[(pos_2_1[0], pos_2_1[1]-1)][voisin_1][edge_1]["label"] == 'CWW' :
+                    for voisin_2 in graphe_global_2[(pos_2_2[0], pos_2_2[1]-1)] : 
+                        for edge_2 in graphe_global_2[(pos_2_2[0], pos_2_2[1]-1)][voisin_2] :
+                            if  graphe_global_2[(pos_2_2[0], pos_2_2[1]-1)][voisin_2][edge_2]["label"] == 'CWW' :
+                                if ((voisin_2[0], voisin_2[1]-1),voisin_2) not in graphe_global_commun_2.edges() and voisin_2 in graphe_global_commun_2.nodes() and (voisin_2[0], voisin_2[1]-1) in graphe_global_commun_2.nodes() and ((voisin_1[0], voisin_1[1]-1),voisin_1) not in graphe_global_commun_1.edges() and voisin_1 in graphe_global_commun_1.nodes() and (voisin_1[0], voisin_1[1]-1) in graphe_global_commun_1.nodes():
+                                    graphe_global_commun_1.add_edge((voisin_1[0], voisin_1[1]-1),voisin_1, label='B53', motif=False)
+                                    graphe_global_commun_2.add_edge((voisin_2[0], voisin_2[1]-1),voisin_2, label='B53', motif=False)  
+    
+    for voisin_1 in graphe_global_1[(pos_4_1[0], pos_4_1[1]+1)] : 
+#         print(voisin)
+        for edge_1 in graphe_global_1[(pos_4_1[0], pos_4_1[1]+1)][voisin_1] :
+                if  graphe_global_1[(pos_4_1[0], pos_4_1[1]+1)][voisin_1][edge_1]["label"] == 'CWW' :
+                    for voisin_2 in graphe_global_2[(pos_4_2[0], pos_4_2[1]+1)] : 
+                        for edge_2 in graphe_global_2[(pos_4_2[0], pos_4_2[1]+1)][voisin_2] :
+                            if  graphe_global_2[(pos_4_2[0], pos_4_2[1]+1)][voisin_2][edge_2]["label"] == 'CWW' :
+                                if (voisin_2,(voisin_2[0], voisin_2[1]+1)) not in graphe_global_commun_2.edges() and voisin_2 in graphe_global_commun_2.nodes() and (voisin_2[0], voisin_2[1]+1) in graphe_global_commun_2.nodes() and (voisin_1,(voisin_1[0], voisin_1[1]+1)) not in graphe_global_commun_1.edges() and voisin_1 in graphe_global_commun_1.nodes() and (voisin_1[0], voisin_1[1]+1) in graphe_global_commun_1.nodes():
+                                    graphe_global_commun_1.add_edge(voisin_1,(voisin_1[0], voisin_1[1]+1), label='B53', motif=False)
+                                    graphe_global_commun_2.add_edge(voisin_2,(voisin_2[0], voisin_2[1]+1), label='B53', motif=False)  
+    
+         
+    
+            
+#     if (pos_1[0], pos_3[0]) not in graphe_global_commun_1.edges() :
+#         graphe_global_commun_1.add_edge(pos_3[0], pos_1[0], label='B53', long_range=False)
+#         
+#     pos_1 = graphe_ext_2.nodes[1]["position"]
+#     pos_3 = graphe_ext_2.nodes[3]["position"]
+#     if (pos_1[0], pos_3[0]) not in graphe_global_commun_2.edges() :
+#         graphe_global_commun_2.add_edge(pos_3[0], pos_1[0], label='B53', long_range=False)
+    
+#     for pred in graphe_commun.predecessors((2,2)) :
+#         pos_pred = graphe_ext_1.nodes[pred[0]]["position"] 
+#         pos_2 = graphe_ext_1.nodes[2]["position"]
+#         
+#         for i in range(pos_pred[0], )
+                           
+    print(graphe_global_commun_1.edges.data())  
+    print(graphe_global_commun_2.nodes.data()) 
+    
+    return graphe_global_commun_1, graphe_global_commun_2
+
 
 '''renvoie le rang associe a une valeur de sim'''
 def rang_sim(dico_sim, sim):
@@ -1594,6 +1914,45 @@ TIKZ_FOOTER="Graphes_globaux/graphes_sequence/taille_%d/"%4+"footer.inc.tex"
         
         
 if __name__ == '__main__':
+    #with open("/media/coline/Maxtor/dico_new_avec_derniere_modif_encore_modif_030220.pickle", 'rb') as fichier_graphe :    
+    #with open("/media/coline/Maxtor/dico_new_100320_sim_par_branche_0.65.pickle", 'rb') as fichier_graphe :    
+    with open("dico_algo_heuristique_new_v_33bfb11.pickle", 'rb') as fichier_graphe :    
+    
+        mon_depickler = pickle.Unpickler(fichier_graphe)
+        dico_graphe = mon_depickler.load() 
+        
+        with open("grands_graphes_new_data_taille_4.pickle", 'rb') as fichier :
+            mon_depickler = pickle.Unpickler(fichier)
+            dico_graphe_global = mon_depickler.load()
+            #liste_a_tester = [(('4y4o', 23), ('5afi', 24)),(('4v67', 7), ('4u3u', 7)),(('4ybb', 12), ('4u3u', 7)),(('4ybb', 12), ('6ek0', 7)),(('4v67', 7), ('6ek0', 7)),(('4y4o', 23), ('4u27', 3)), (('5wfs', 19), ('4u3u', 7)),(('5wfs', 19), ('6ek0', 7)),(('2zjr', 3), ('4u4r', 18))]
+            liste_a_tester = [(('4ybb', 6), ('1vq8', 19))]
+
+            for couple in liste_a_tester :
+                for elt in dico_graphe.keys() :
+                    if elt[0] in couple and elt[1] in couple :
+                        with open(NEW_EXTENSION_PATH_TAILLE+"fichier_"+elt[0][0]+"_"+str(elt[0][1])+"_2.pickle", 'rb') as fichier_graphe1 :
+                            mon_depickler1 = pickle.Unpickler(fichier_graphe1)
+                            graphe1 = mon_depickler1.load()
+                                
+                        with open(NEW_EXTENSION_PATH_TAILLE+"fichier_"+elt[1][0]+"_"+str(elt[1][1])+"_2.pickle", 'rb') as fichier_graphe2 :
+                            mon_depickler2 = pickle.Unpickler(fichier_graphe2)
+                            graphe2 = mon_depickler2.load()
+                            print(type(dico_graphe_global[elt[0]][0]))
+                            graphe_commun_global_1, graphe_commun_global_2 = isomorphisme_extension_to_global_version_new_data(dico_graphe[elt]["graphe"], graphe1, graphe2, dico_graphe_global[elt[0]][0], dico_graphe_global[elt[1]][0])
+                            print("ramou")
+                            print(dico_graphe_global[elt[0]][0].edges.data())
+                            print(dico_graphe_global[elt[1]][0].edges.data())
+                            print("ramousnif")
+                            sim = round(calcul_sim_aretes_avec_coeff(graphe1, graphe2, dico_graphe[elt]["graphe"], "petit rat", 1, 1, 1),2)
+                            print(graphe_commun_global_1.nodes.data())
+                            print(graphe_commun_global_1.edges.data())
+                            print(graphe_commun_global_2.nodes.data())
+                            print(graphe_commun_global_2.edges.data())
+                            draw_isomorphism_struct(elt[0], elt[1], graphe_commun_global_1, graphe_commun_global_2, dico_graphe_global[elt[0]][0], dico_graphe_global[elt[1]][0], sim)
+                            
+                            #exit()
+    
+    exit()
     nom_fichier ="1c2w_1"
     
     

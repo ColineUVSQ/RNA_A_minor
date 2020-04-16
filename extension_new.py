@@ -14,7 +14,7 @@ from recup_data.environnement_liaisons_non_can import nb_canoniques_short_range,
     
 ''' ajout d'un sommet au graphe d'extension et d'aretes si necessaire  '''
 def ajout_sommet(G, compteur, compteur_tige, position, typ, poids, label, positions_ajoutees, int_tige, valeur_debut, *args, **kwargs):
-    near = kwargs.get("long_range", False)
+    near = kwargs.get("near", False)
     num_ch = kwargs.get("num_ch", -1)
     voisin_chaine =  kwargs.get("voisin_chaine", -1)
     voisin_voisin =  kwargs.get("voisin_voisin", -1)
@@ -74,10 +74,12 @@ def ajout_sommet(G, compteur, compteur_tige, position, typ, poids, label, positi
             G.add_edge(compteur, noeud_existe, label="CWW", near = near)
             G.add_edge(noeud_existe, compteur, label="CWW", near = near)
         
+            
         
         
         ##cas ou une liaison can avec un sommet None
         if voisin_voisin != False : 
+            
             noeud_existe = False
             for noeud, data in G.nodes(data=True) :
                 if voisin_voisin >= data["position"][0] and voisin_voisin <= data["position"][1] :
@@ -192,18 +194,20 @@ def type_sommet(voisins, new_position, G, graphe_base, taille_motif):
     type_sommet_actuel = -1
     if len(voisins) == 0 :
         type_sommet_actuel = 0
-    if len(voisins) == 1 : ##Pas de voisin en dehors de la sequence
+    if len(voisins) == 1 : ##Pas de voisin en dehors de la sequence (ou alors il manque la liaison B53)
         for voisin in voisins :
             if graphe_base[new_position][voisin]["label"] == "B53": 
                 type_sommet_actuel = 0
+            elif graphe_base[new_position][voisin]["label"] == 'CWW' and ((graphe_base.nodes[new_position]["nt"] == 'A' and graphe_base.nodes[voisin]["nt"] == 'U') or (graphe_base.nodes[new_position]["nt"] == 'U' and graphe_base.nodes[voisin]["nt"] == 'A') or (graphe_base.nodes[new_position]["nt"] == 'C' and graphe_base.nodes[voisin]["nt"] == 'G') or (graphe_base.nodes[new_position]["nt"] == 'G' and graphe_base.nodes[voisin]["nt"] == 'C') or (graphe_base.nodes[new_position]["nt"] == 'G' and graphe_base.nodes[voisin]["nt"] == 'U') or (graphe_base.nodes[new_position]["nt"] == 'U' and graphe_base.nodes[voisin]["nt"] == 'G'))  : #and ((voisin <= compteur_tige2 and voisin > compteur_tige2-5) or (voisin >= compteur_tige2 and voisin < compteur_tige2+5) or (voisin <= G.node[valeur_debut]["position"][0] and voisin > G.node[valeur_debut]["position"][0]-10) or (voisin >= G.node[valeur_debut]["position"][0] and voisin < G.node[valeur_debut]["position"][0]+10)) ::
+                type_sommet_actuel = 1
             else :
                 type_sommet_actuel = 3
     elif len(voisins) == 2 : ## Un autre voisin en dehors de la sequence
         for voisin in voisins :
             label_voisin = graphe_base[new_position][voisin]["label"]
             if label_voisin != "B53" :
-                #if label_voisin == 'CWW' and ((graphe_base.nodes[new_position]["nt"] == 'A' and graphe_base.nodes[voisin]["nt"] == 'U') or (graphe_base.nodes[new_position]["nt"] == 'U' and graphe_base.nodes[voisin]["nt"] == 'A') or (graphe_base.nodes[new_position]["nt"] == 'C' and graphe_base.nodes[voisin]["nt"] == 'G') or (graphe_base.nodes[new_position]["nt"] == 'G' and graphe_base.nodes[voisin]["nt"] == 'C') or (graphe_base.nodes[new_position]["nt"] == 'G' and graphe_base.nodes[voisin]["nt"] == 'U') or (graphe_base.nodes[new_position]["nt"] == 'U' and graphe_base.nodes[voisin]["nt"] == 'G'))  : #and ((voisin <= compteur_tige2 and voisin > compteur_tige2-5) or (voisin >= compteur_tige2 and voisin < compteur_tige2+5) or (voisin <= G.node[valeur_debut]["position"][0] and voisin > G.node[valeur_debut]["position"][0]-10) or (voisin >= G.node[valeur_debut]["position"][0] and voisin < G.node[valeur_debut]["position"][0]+10)) :
-                if label_voisin == 'CWW' :
+                if label_voisin == 'CWW' and ((graphe_base.nodes[new_position]["nt"] == 'A' and graphe_base.nodes[voisin]["nt"] == 'U') or (graphe_base.nodes[new_position]["nt"] == 'U' and graphe_base.nodes[voisin]["nt"] == 'A') or (graphe_base.nodes[new_position]["nt"] == 'C' and graphe_base.nodes[voisin]["nt"] == 'G') or (graphe_base.nodes[new_position]["nt"] == 'G' and graphe_base.nodes[voisin]["nt"] == 'C') or (graphe_base.nodes[new_position]["nt"] == 'G' and graphe_base.nodes[voisin]["nt"] == 'U') or (graphe_base.nodes[new_position]["nt"] == 'U' and graphe_base.nodes[voisin]["nt"] == 'G'))  : #and ((voisin <= compteur_tige2 and voisin > compteur_tige2-5) or (voisin >= compteur_tige2 and voisin < compteur_tige2+5) or (voisin <= G.node[valeur_debut]["position"][0] and voisin > G.node[valeur_debut]["position"][0]-10) or (voisin >= G.node[valeur_debut]["position"][0] and voisin < G.node[valeur_debut]["position"][0]+10)) :
+                #if label_voisin == 'CWW' :
                 ##sommet de type 0
                     type_sommet_actuel = 1       
                     #compteur_tige2 = voisin
@@ -214,8 +218,8 @@ def type_sommet(voisins, new_position, G, graphe_base, taille_motif):
         for voisin in voisins : #Recherche d'une liaison can de tige
             label_voisin = graphe_base[new_position][voisin]["label"]
             if label_voisin != "B53" :
-                #if label_voisin == 'CWW' and ((graphe_base.nodes[new_position]["nt"] == 'A' and graphe_base.nodes[voisin]["nt"] == 'U') or (graphe_base.nodes[new_position]["nt"] == 'U' and graphe_base.nodes[voisin]["nt"] == 'A') or (graphe_base.nodes[new_position]["nt"] == 'C' and graphe_base.nodes[voisin]["nt"] == 'G') or (graphe_base.nodes[new_position]["nt"] == 'G' and graphe_base.nodes[voisin]["nt"] == 'C') or (graphe_base.nodes[new_position]["nt"] == 'G' and graphe_base.nodes[voisin]["nt"] == 'U') or (graphe_base.nodes[new_position]["nt"] == 'U' and graphe_base.nodes[voisin]["nt"] == 'G'))  : #and ((voisin <= compteur_tige2 and voisin > compteur_tige2-5) or (voisin >= compteur_tige2 and voisin < compteur_tige2+5) or (voisin <= G.node[valeur_debut]["position"][0] and voisin > G.node[valeur_debut]["position"][0]-10) or (voisin >= G.node[valeur_debut]["position"][0] and voisin < G.node[valeur_debut]["position"][0]+10)) :
-                if label_voisin == 'CWW' :
+                if label_voisin == 'CWW' and ((graphe_base.nodes[new_position]["nt"] == 'A' and graphe_base.nodes[voisin]["nt"] == 'U') or (graphe_base.nodes[new_position]["nt"] == 'U' and graphe_base.nodes[voisin]["nt"] == 'A') or (graphe_base.nodes[new_position]["nt"] == 'C' and graphe_base.nodes[voisin]["nt"] == 'G') or (graphe_base.nodes[new_position]["nt"] == 'G' and graphe_base.nodes[voisin]["nt"] == 'C') or (graphe_base.nodes[new_position]["nt"] == 'G' and graphe_base.nodes[voisin]["nt"] == 'U') or (graphe_base.nodes[new_position]["nt"] == 'U' and graphe_base.nodes[voisin]["nt"] == 'G'))  : #and ((voisin <= compteur_tige2 and voisin > compteur_tige2-5) or (voisin >= compteur_tige2 and voisin < compteur_tige2+5) or (voisin <= G.node[valeur_debut]["position"][0] and voisin > G.node[valeur_debut]["position"][0]-10) or (voisin >= G.node[valeur_debut]["position"][0] and voisin < G.node[valeur_debut]["position"][0]+10)) :
+                #if label_voisin == 'CWW' :
                     type_sommet_actuel = 2
                     #compteur_tige2 = voisin
         if type_sommet_actuel == -1 :
@@ -262,23 +266,36 @@ def extension_tige_new_data(G, graphe, compteur, compteur_tige, positions_ajoute
     
     
     while i < taille_ext and new_position[1] > 0 and new_position[1] < graphe.number_of_nodes() and new_position[0] == G.node[valeur_debut]["num_ch"] and new_position in graphe.nodes():
-        print(new_position)
-        print(G.nodes.data())
-        print(G.edges.data())
-        if new_position == ('A', 6) :
-                                    print("petit rat")
-                                    print(type_sommet_actuel)
-                                    print(type_sommet_prec)
-                                    print(num_ch_sommet)
-                                    print(num_ch_sommet_prec)
-                                    print(voisin_chaine_prec)
-                                    print(G.edges.data())
-                                    print(positions_ajoutees)
-                                    print(i)
+#         print(new_position)
+#         print(G.nodes.data())
+#         print(G.edges.data())
+#         if new_position == ('A', 6) :
+#                                     print("petit rat")
+#                                     print(type_sommet_actuel)
+#                                     print(type_sommet_prec)
+#                                     print(num_ch_sommet)
+#                                     print(num_ch_sommet_prec)
+#                                     print(voisin_chaine_prec)
+#                                     print(G.edges.data())
+#                                     print(positions_ajoutees)
+#                                     print(i)
         if i == 0 or new_position not in positions_ajoutees[:taille_motif-1] :## pour ne pas revenir sur le motif
             
             #print(graphe.nodes.data())
+            
             voisins = graphe[new_position]
+            ## enlever les voisins near
+#             voisins = []
+#             for voisin in graphe[new_position] :
+#                 if compteur == 8 :
+#                     print(graphe[new_position][voisin])
+#                 if graphe[new_position][voisin]["near"] != True :
+#                     
+#                     voisins.append(voisin)
+#             
+#             if compteur == 8 :
+#                 print("gros tas")
+#                 print(voisins)
  
             type_sommet_actuel = type_sommet(voisins, new_position, G, graphe, taille_motif)
             
@@ -369,7 +386,7 @@ def extension_tige_new_data(G, graphe, compteur, compteur_tige, positions_ajoute
                                 if near not in type_near :
                                     type_near.append(near)
                                 
-                                    
+                                  
                             #if position_prec not in positions_ajoutees :
                             if deja_vu == False :
     #                             if compteur == 38 :
@@ -391,6 +408,9 @@ def extension_tige_new_data(G, graphe, compteur, compteur_tige, positions_ajoute
                                 if position_prec[0] != position_prec_groupe[0] : ## differents num de chaine
                                     print("probleme18464")
                                 
+#                                 if compteur == 8 :
+#                                     print("rapoulou")
+#                                     print(G.edges.data())  
 
                                 compteur_tige = compteur
                                 if voisin_none != False:
@@ -458,6 +478,7 @@ def extension_tige_new_data(G, graphe, compteur, compteur_tige, positions_ajoute
                         position_prec_groupe = new_position    
                         type_sommet_prec = type_sommet_actuel
                         poids_sommet = 1  
+                        
                         
                         
                         
@@ -575,6 +596,7 @@ def extension_tige_new_data(G, graphe, compteur, compteur_tige, positions_ajoute
                     ajout_sommet(G, compteur, compteur_tige, (new_position[1], new_position[1]), type_sommet_actuel, 1, "B53", positions_ajoutees, int_tige, valeur_debut, num_ch=new_position[0])
                     
                     
+
                     compteur_tige = compteur
                     compteur = compteur+1
                     
@@ -586,8 +608,8 @@ def extension_tige_new_data(G, graphe, compteur, compteur_tige, positions_ajoute
                         if label_voisin != "B53" :
                             if voisin not in positions_ajoutees :
                                 
-#                                 if label_voisin == 'CWW' and not ((graphe.nodes[new_position]["nt"] == 'A' and graphe.nodes[voisin]["nt"] == 'U') or (graphe.nodes[new_position]["nt"] == 'U' and graphe.nodes[voisin]["nt"] == 'A') or (graphe.nodes[new_position]["nt"] == 'C' and graphe.nodes[voisin]["nt"] == 'G') or (graphe.nodes[new_position]["nt"] == 'G' and graphe.nodes[voisin]["nt"] == 'C') or (graphe.nodes[new_position]["nt"] == 'G' and graphe.nodes[voisin]["nt"] == 'U') or (graphe.nodes[new_position]["nt"] == 'U' and graphe.nodes[voisin]["nt"] == 'G'))  : 
-#                                     label_voisin = 'CWWn'
+                                if label_voisin == 'CWW' and not ((graphe.nodes[new_position]["nt"] == 'A' and graphe.nodes[voisin]["nt"] == 'U') or (graphe.nodes[new_position]["nt"] == 'U' and graphe.nodes[voisin]["nt"] == 'A') or (graphe.nodes[new_position]["nt"] == 'C' and graphe.nodes[voisin]["nt"] == 'G') or (graphe.nodes[new_position]["nt"] == 'G' and graphe.nodes[voisin]["nt"] == 'C') or (graphe.nodes[new_position]["nt"] == 'G' and graphe.nodes[voisin]["nt"] == 'U') or (graphe.nodes[new_position]["nt"] == 'U' and graphe.nodes[voisin]["nt"] == 'G'))  : 
+                                    label_voisin = 'CWWn'
                                 ajout_sommet(G, compteur, compteur_tige, (voisin[1],voisin[1]), None, 1, label_voisin, positions_ajoutees, int_tige, valeur_debut, near = graphe[new_position][voisin]["near"], num_ch = voisin[0])
                                 compteur = compteur+1
                             else :
@@ -604,14 +626,18 @@ def extension_tige_new_data(G, graphe, compteur, compteur_tige, positions_ajoute
                                         if v == compteur_tige and G[num_sommet][v][edge]["label"] != "B53" : 
                                             deja_fait = True 
                                 if deja_fait == False :
-#                                     if label_voisin == 'CWW' and not ((graphe.nodes[new_position]["nt"] == 'A' and graphe.nodes[voisin]["nt"] == 'U') or (graphe.nodes[new_position]["nt"] == 'U' and graphe.nodes[voisin]["nt"] == 'A') or (graphe.nodes[new_position]["nt"] == 'C' and graphe.nodes[voisin]["nt"] == 'G') or (graphe.nodes[new_position]["nt"] == 'G' and graphe.nodes[voisin]["nt"] == 'C') or (graphe.nodes[new_position]["nt"] == 'G' and graphe.nodes[voisin]["nt"] == 'U') or (graphe.nodes[new_position]["nt"] == 'U' and graphe.nodes[voisin]["nt"] == 'G'))  : 
-#                                         label_voisin = 'CWWn'
+                                    if label_voisin == 'CWW' and not ((graphe.nodes[new_position]["nt"] == 'A' and graphe.nodes[voisin]["nt"] == 'U') or (graphe.nodes[new_position]["nt"] == 'U' and graphe.nodes[voisin]["nt"] == 'A') or (graphe.nodes[new_position]["nt"] == 'C' and graphe.nodes[voisin]["nt"] == 'G') or (graphe.nodes[new_position]["nt"] == 'G' and graphe.nodes[voisin]["nt"] == 'C') or (graphe.nodes[new_position]["nt"] == 'G' and graphe.nodes[voisin]["nt"] == 'U') or (graphe.nodes[new_position]["nt"] == 'U' and graphe.nodes[voisin]["nt"] == 'G'))  : 
+                                        label_voisin = 'CWWn'
                                     if len(label_voisin) == 3 :
                                         label_voisin_inverse = label_voisin[0]+label_voisin[2]+label_voisin[1]
                                     else :
                                         label_voisin_inverse = label_voisin[0]+label_voisin[2]+label_voisin[1] + label_voisin[3]
                                     G.add_edge(num_sommet, compteur_tige, label=label_voisin_inverse, near = graphe[new_position][voisin]["near"])
                                     G.add_edge(compteur_tige, num_sommet, label=label_voisin, near = graphe[new_position][voisin]["near"])
+                                ## new 11/04/20 test
+                                for c in G.nodes[compteur_tige]["chaine"] :
+                                    if c not in G.nodes[num_sommet]["chaine"] :
+                                        G.nodes[num_sommet]["chaine"].append(c)
                     type_sommet_prec = type_sommet_actuel 
     
             else : ## le sommet actuel existe deja
@@ -682,14 +708,14 @@ def extension_tige_new_data(G, graphe, compteur, compteur_tige, positions_ajoute
                             if near not in type_near :
                                 type_near.append(near)
                         #if position_prec not in positions_ajoutees :
-                        if new_position == ('CA', 1801) :
-                                print("tout petit rat")
-                                print(compteur)
-                                print(compteur_tige)
-                                print(num_sommet)
-                                print(position_prec_groupe)
-                                print(positions_ajoutees)
-                                print(deja_vu)
+#                         if new_position == ('CA', 1801) :
+#                                 print("tout petit rat")
+#                                 print(compteur)
+#                                 print(compteur_tige)
+#                                 print(num_sommet)
+#                                 print(position_prec_groupe)
+#                                 print(positions_ajoutees)
+#                                 print(deja_vu)
                         if deja_vu == False :
                             if position_prec[1] - position_prec_groupe[1] <= 0 :
                                 if type_sommet_actuel != 1 :
@@ -928,8 +954,8 @@ def extension_tige_new_data(G, graphe, compteur, compteur_tige, positions_ajoute
                         label_voisin = graphe[new_position][voisin]["label"]
                         if label_voisin != "B53" :
                             if voisin not in positions_ajoutees :
-#                                 if label_voisin == 'CWW' and not ((graphe.nodes[new_position]["nt"] == 'A' and graphe.nodes[voisin]["nt"] == 'U') or (graphe.nodes[new_position]["nt"] == 'U' and graphe.nodes[voisin]["nt"] == 'A') or (graphe.nodes[new_position]["nt"] == 'C' and graphe.nodes[voisin]["nt"] == 'G') or (graphe.nodes[new_position]["nt"] == 'G' and graphe.nodes[voisin]["nt"] == 'C') or (graphe.nodes[new_position]["nt"] == 'G' and graphe.nodes[voisin]["nt"] == 'U') or (graphe.nodes[new_position]["nt"] == 'U' and graphe.nodes[voisin]["nt"] == 'G'))  : 
-#                                     label_voisin = 'CWWn'
+                                if label_voisin == 'CWW' and not ((graphe.nodes[new_position]["nt"] == 'A' and graphe.nodes[voisin]["nt"] == 'U') or (graphe.nodes[new_position]["nt"] == 'U' and graphe.nodes[voisin]["nt"] == 'A') or (graphe.nodes[new_position]["nt"] == 'C' and graphe.nodes[voisin]["nt"] == 'G') or (graphe.nodes[new_position]["nt"] == 'G' and graphe.nodes[voisin]["nt"] == 'C') or (graphe.nodes[new_position]["nt"] == 'G' and graphe.nodes[voisin]["nt"] == 'U') or (graphe.nodes[new_position]["nt"] == 'U' and graphe.nodes[voisin]["nt"] == 'G'))  : 
+                                    label_voisin = 'CWWn'
                                 ajout_sommet(G, compteur, compteur_tige, (voisin[1],voisin[1]), None, 1, label_voisin, positions_ajoutees, int_tige, valeur_debut, near=graphe[new_position][voisin]["near"], num_ch=voisin[0])
                                 compteur = compteur+1
                             else :
@@ -951,8 +977,8 @@ def extension_tige_new_data(G, graphe, compteur, compteur_tige, positions_ajoute
                                         if v == compteur_tige and G[num_sommet][v][edge]["label"] != "B53" : 
                                             deja_fait = True 
                                 if deja_fait == False :
-#                                     if label_voisin == 'CWW' and not ((graphe.nodes[new_position]["nt"] == 'A' and graphe.nodes[voisin]["nt"] == 'U') or (graphe.nodes[new_position]["nt"] == 'U' and graphe.nodes[voisin]["nt"] == 'A') or (graphe.nodes[new_position]["nt"] == 'C' and graphe.nodes[voisin]["nt"] == 'G') or (graphe.nodes[new_position]["nt"] == 'G' and graphe.nodes[voisin]["nt"] == 'C') or (graphe.nodes[new_position]["nt"] == 'G' and graphe.nodes[voisin]["nt"] == 'U') or (graphe.nodes[new_position]["nt"] == 'U' and graphe.nodes[voisin]["nt"] == 'G'))  : 
-#                                         label_voisin = 'CWWn'
+                                    if label_voisin == 'CWW' and not ((graphe.nodes[new_position]["nt"] == 'A' and graphe.nodes[voisin]["nt"] == 'U') or (graphe.nodes[new_position]["nt"] == 'U' and graphe.nodes[voisin]["nt"] == 'A') or (graphe.nodes[new_position]["nt"] == 'C' and graphe.nodes[voisin]["nt"] == 'G') or (graphe.nodes[new_position]["nt"] == 'G' and graphe.nodes[voisin]["nt"] == 'C') or (graphe.nodes[new_position]["nt"] == 'G' and graphe.nodes[voisin]["nt"] == 'U') or (graphe.nodes[new_position]["nt"] == 'U' and graphe.nodes[voisin]["nt"] == 'G'))  : 
+                                        label_voisin = 'CWWn'
                                     
                                     if len(label_voisin) == 3 :
                                         label_voisin_inverse = label_voisin[0]+label_voisin[2]+label_voisin[1]
@@ -960,6 +986,10 @@ def extension_tige_new_data(G, graphe, compteur, compteur_tige, positions_ajoute
                                         label_voisin_inverse = label_voisin[0]+label_voisin[2]+label_voisin[1] + label_voisin[3]
                                     G.add_edge(num_sommet, compteur_tige, label=label_voisin_inverse, near=graphe[new_position][voisin]["near"])
                                     G.add_edge(compteur_tige, num_sommet, label=label_voisin, near=graphe[new_position][voisin]["near"])
+                                ## new 11/04/20 test
+                                for c in G.nodes[compteur_tige]["chaine"] :
+                                    if c not in G.nodes[num_sommet]["chaine"] :
+                                        G.nodes[num_sommet]["chaine"].append(c)
                     type_sommet_prec = type_sommet_actuel
                     poids_sommet = 1 
             
@@ -1609,13 +1639,13 @@ def obtenir_extension_un_elt(elt, graphe,taille_ext):
         for cle in all_aminor.keys() :
             
             if cle == elt[0] :
-                    print(cle)
+#                     print(cle)
                     compteur_nb = 0
                     compteur_nb_2 = 0
                     compter_graphe = 1
                     for graph_motif in all_aminor[cle] :
                         if compter_graphe == int(elt[1]) :
-                            print(compter_graphe)
+#                             print(compter_graphe)
 #                             for noeud, data in graphe.nodes(data=True) :
 #                                 print(str(noeud) + ' ' + str(data) + "\n")
                         
@@ -1624,20 +1654,20 @@ def obtenir_extension_un_elt(elt, graphe,taille_ext):
                             G = nx.MultiDiGraph()
                             i = 1
                             positions_ajoutees = []
-                            print(graph_motif.edges.data())
+#                             print(graph_motif.edges.data())
                             #G, positions_ajoutees = stockage_motif_generique(G, graph_motif, positions_ajoutees, motif_7left)
                             G, positions_ajoutees = stockage_motif(G, graph_motif, positions_ajoutees)
 
                             
-                            print(graph_motif.edges.data())
-                            print(G.edges.data())
-                            print(positions_ajoutees)
+#                             print(graph_motif.edges.data())
+#                             print(G.edges.data())
+#                             print(positions_ajoutees)
                             
                             #compteur = motif_7left.number_of_nodes()+1
                             compteur = 6
                             
-                            print(G.nodes.data())
-                            print(G.edges.data())
+#                             print(G.nodes.data())
+#                             print(G.edges.data())
         #                     print(G.nodes.data())
                             #print(G.edges.data())
                             #fichier.write(str(graphes[('1U9S', 'A')].nodes.data())+"\n")
@@ -1653,7 +1683,7 @@ def obtenir_extension_un_elt(elt, graphe,taille_ext):
                             num_ch_1 = []
                             num_ch_2 = []
                             for noeud, data in G.nodes(data=True) :
-                                print(data)
+#                                 print(data)
                                 #if data["chaine"] == [1,3] :#or data["chaine"] == [3] :
                                 if data["chaine"] == [1] or data["chaine"] == [3] :
                                     num_ch_1.insert(0, noeud)
@@ -1661,8 +1691,8 @@ def obtenir_extension_un_elt(elt, graphe,taille_ext):
                                     num_ch_2.append(noeud)
                             compteur_tige = num_ch_2[0]   
                             
-                            print(num_ch_1)   
-                            print(num_ch_2)
+#                             print(num_ch_1)   
+#                             print(num_ch_2)
                             ##Garder toutes les positions de la sequence
                             if len(num_ch_1) == 2 :
                                 if G.node[num_ch_1[0]]["position"][0] - G.node[num_ch_1[1]]["position"][0] < 0 : ## ordre de haut en bas
@@ -1704,7 +1734,7 @@ def obtenir_extension_un_elt(elt, graphe,taille_ext):
                                     if G.node[num_ch_2[0]]["position"][0]-i > 0 and  (G.node[num_ch_2[0]]["num_ch"], G.node[2]["position"][0]-i) in graphe.nodes() :
                                         positions_chaines[1].append((G.node[num_ch_2[0]]["num_ch"], G.node[num_ch_2[0]]["position"][0]-i))
                              
-                            print(positions_chaines)  
+#                             print(positions_chaines)  
                             ##Connaitre l'ordre des positions sur la sequence
                             int_tige = 0
                             if G.node[num_ch_2[0]]["position"][0] - G.node[num_ch_2[1]]["position"][0] < 0 : ## ordre de haut en bas
@@ -1715,10 +1745,10 @@ def obtenir_extension_un_elt(elt, graphe,taille_ext):
                              
                             ##Initialisation de la boucle 1
                             #===================================================================
-                            print(compteur_tige) 
+#                             print(compteur_tige) 
                             G = extension_tige_new_data(G, graphe, compteur, compteur_tige, positions_ajoutees, int_tige, taille_ext, positions_chaines, num_ch_1, num_ch_2, 5)
-                            print(G.nodes.data())
-                            print(G.edges.data())
+#                             print(G.nodes.data())
+#                             print(G.edges.data())
                             #print(G.nodes.data())
                             #print(G.edges.data())
                             #print(G.nodes.data())
@@ -1735,10 +1765,10 @@ def obtenir_extension_un_elt(elt, graphe,taille_ext):
         #                     print(nom_cle)
         #                     print(occ["num_motif"])
         #                     print(occ["num_occ"])
-                            print(compteur_tige) 
+#                             print(compteur_tige) 
                             G = extension_tige_new_data(G, graphe, compteur, compteur_tige, positions_ajoutees, int_tige, taille_ext, positions_chaines, num_ch_1, num_ch_2, 5)  
-                            print(G.nodes.data())
-                            print(G.edges.data())
+#                             print(G.nodes.data())
+#                             print(G.edges.data())
                             #print(G.nodes.data())
                             #print(G.edges.data())
                             
@@ -1753,23 +1783,23 @@ def obtenir_extension_un_elt(elt, graphe,taille_ext):
                              
                             print(compteur_tige) 
                             G = extension_tige_new_data(G, graphe, compteur, compteur_tige, positions_ajoutees, int_tige, taille_ext, positions_chaines, num_ch_1, num_ch_2, 5) 
-                            print(G.nodes.data())
-                            print(G.edges.data()) 
+#                             print(G.nodes.data())
+#                             print(G.edges.data()) 
          
                             compteur_tige = num_ch_1[0]
                             int_tige = 1
                             compteur = G.number_of_nodes()+1
                              
-                            print(compteur_tige) 
+#                             print(compteur_tige) 
                             G = extension_tige_new_data(G, graphe, compteur, compteur_tige, positions_ajoutees, int_tige, taille_ext, positions_chaines, num_ch_1, num_ch_2, 5) 
                              
-                            print(G.nodes.data())
-                            print(G.edges.data())
+#                             print(G.nodes.data())
+#                             print(G.edges.data())
                             
                             G = ajout_liaisons_B53_qui_manquent(G)
                              
-                            print(G.nodes.data())
-                            print(G.edges.data()) 
+#                             print(G.nodes.data())
+#                             print(G.edges.data()) 
                             G = ajout_aretes_artificielles(G, "non_regroupement")
                             G = regroupement_liaisons_short_range(G, graphe)
                             
@@ -1868,7 +1898,7 @@ def obtenir_extension_new_data(taille_ext):
             liste_pb = []
             for cle in all_aminor.keys() :
                 #print(cle)
-                if cle == "4y4o" :
+                #if cle == "4u27" :
                     print("petit rat")
                     with open("Graphs/%s.pickle"%cle, 'rb') as fichier_tout :
                         mon_depickler_graphes = pickle.Unpickler(fichier_tout)
@@ -1879,7 +1909,7 @@ def obtenir_extension_new_data(taille_ext):
                         compteur_nb_2 = 0
                         compter_graphe = 1
                         for graph_motif in all_aminor[cle] :
-                            if compter_graphe == 23 :
+                            #if compter_graphe == 3 :
 #                             for noeud, data in graphe.nodes(data=True) :
 #                                 print(str(noeud) + ' ' + str(data) + "\n")
                             
@@ -2074,15 +2104,15 @@ def obtenir_extension_new_data(taille_ext):
 #                                     
 #                                     if ancien_g.number_of_edges() != G.number_of_edges() :
 #                                         liste_pb.append(str(cle) + "_" + str(compter_graphe))
-                                        
-                                with open(NEW_EXTENSION_PATH_TAILLE+"fichier_{}_3.pickle".format(str(cle) + "_" + str(compter_graphe)), "wb") as fichier_sortie :
+#                                         
+                                with open(NEW_EXTENSION_PATH_TAILLE+"taille_3/fichier_{}.pickle".format(str(cle) + "_" + str(compter_graphe)), "wb") as fichier_sortie :
                                         mon_pickler = pickle.Pickler(fichier_sortie)
                                         mon_pickler.dump(G)
                                     
-                            compter_graphe += 1
+                                compter_graphe += 1
                         #break
     
     print(liste_pb)
 if __name__ == '__main__':
-    obtenir_extension_new_data(4)
+    obtenir_extension_new_data(3)
          

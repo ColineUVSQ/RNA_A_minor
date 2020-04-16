@@ -31,6 +31,8 @@ graphe : le graphe courant
 liste_sommets : l'ensemble des cliques correspondant au sous-graphe commun
 num : dans les cliques, le numero correspondant au graphe courant '''
 def suivant_existe(noeud, graphe, liste_sommets, num):
+#     print(liste_sommets)
+#     print(num)
     for clique in liste_sommets : 
         for elt in clique :  
             #print("gros gros rat")
@@ -39,6 +41,10 @@ def suivant_existe(noeud, graphe, liste_sommets, num):
                 #print("gros gros rat")
                 #print(graphe.nodes[elt[0]]["position"][0])
                 #print(graphe.nodes[noeud]["position"][1]+1)
+#                 print(elt[0])
+#                 print(noeud)
+#                 print(num)
+#                 print(clique)
                 if graphe.nodes[elt[0]]["position"][0] == graphe.nodes[noeud]["position"][1]+1 :
                     return elt[0]
     return -1
@@ -279,13 +285,12 @@ rep_extension : chemin du repertoire ou se trouvent les fichiers de graphes d'ex
 def commun_cluster_clique_new_data(cluster, rep_comparaison, rep_extension):
     graphe_commun = nx.MultiDiGraph()
     print(len(cluster))
+    with open(rep_comparaison, 'rb') as fichier_comp :
+        mon_depickler = pickle.Unpickler(fichier_comp)
+        dico_comp = mon_depickler.load()
     
-    
-    if len(cluster) > 2 :
+        if len(cluster) > 1 :
         ## construction graphe des cliques
-        with open(rep_comparaison, 'rb') as fichier_comp :
-            mon_depickler = pickle.Unpickler(fichier_comp)
-            dico_comp = mon_depickler.load()
             graphe_cluster_clique = nx.Graph()
             
             for i in range(len(cluster)) :
@@ -299,6 +304,12 @@ def commun_cluster_clique_new_data(cluster, rep_comparaison, rep_extension):
                         
                     for noeud in dico_comp[(cluster[cle_0], cluster[cle_1])]["graphe"].nodes() :
                         #print(noeud)
+                        #print(cle_0)
+                        if cluster[cle_0] == ('1mms', 1) or cluster[cle_1] == ('1mms', 1) :
+                            print("rap")
+                            print(cluster[cle_0])
+                            print(cluster[cle_1])
+                            print(noeud)
                         if noeud not in [(1,1),(2,2),(3,3),(4,4),(5,5)] :
                             if (noeud[0],cle_0) not in graphe_cluster_clique.nodes() :
                                 graphe_cluster_clique.add_node((noeud[0],cle_0))
@@ -309,244 +320,287 @@ def commun_cluster_clique_new_data(cluster, rep_comparaison, rep_extension):
         #print(graphe_cluster_clique.nodes.data())
         #print(graphe_cluster_clique.edges.data())
         
-        ## recherche des cliques de taille len(cluster)
-        cliques = list(nx.enumerate_all_cliques(graphe_cluster_clique))
-        #print(cliques)
-        print(len(cliques))
-        liste_sommets_motifs = []
-        liste_cliques = []
-        for elt in cliques :
-            if len(elt) == len(cluster) :
-                print(elt)
-                if elt[0][1] != 0 :
-                    print("probleme")
-                for indice in elt :
-                    if indice[1] == 0 :
-                        liste_sommets_motifs.append(indice[0])
+            ## recherche des cliques de taille len(cluster)
+            cliques = list(nx.enumerate_all_cliques(graphe_cluster_clique))
+            #print(cliques)
+            print(len(cliques))
+            liste_sommets_motifs = []
+            liste_cliques = []
+            for elt in cliques :
+                if len(elt) == len(cluster) :
+                    print(elt)
+                    if elt[0][1] != 0 :
+                        print("probleme")
+                    for indice in elt :
+                        if indice[1] == 0 :
+                            liste_sommets_motifs.append(indice[0])
+                    liste_cliques.append(elt)
+            for i in range(1,6) :
+                elt = []
+                for j in range(len(cluster)) :
+                    elt.append((i,j))
                 liste_cliques.append(elt)
-        for i in range(1,6) :
-            elt = []
-            for j in range(len(cluster)) :
-                elt.append((i,j))
-            liste_cliques.append(elt)
-        liste_sommets_motifs.extend([1,2,3,4,5])
-        print(liste_sommets_motifs)
-        print(len(liste_cliques))
-        #exit(0)
-        
-        ## remplissage du graphe commun
-        with open(rep_extension+"/"+"fichier_"+cluster[0][0]+"_"+str(cluster[0][1])+".pickle", 'rb') as fichier_ext :
-            mon_depickler_ext = pickle.Unpickler(fichier_ext)
-            graphe = mon_depickler_ext.load()
-
-            for noeud in liste_sommets_motifs :
-                graphe.nodes[noeud].update({'num_seq' : [(cluster[0], graphe.nodes[noeud]["position"], graphe.nodes[noeud]["num_ch"])]})
-                graphe_commun.add_node(noeud, **graphe.nodes[noeud])
-            
-            ## ajout des aretes apparaissant dans tous les graphes
-            liste_aretes = []
-            for u,v,data in graphe.edges(data=True) :
-                if u in graphe_commun.nodes() and v in graphe_commun.nodes() and data["label"] != 'B53' :
-                    if (u,v, data) not in liste_aretes : 
-                        liste_aretes.append((u,v,data))
-             
-            for i in range(1,len(cluster)) :
-                with open(rep_extension+"/"+"fichier_"+cluster[i][0]+"_"+str(cluster[i][1])+".pickle", 'rb') as fichier_ext_2 :
-                    mon_depickler_ext_2 = pickle.Unpickler(fichier_ext_2)
-                    graphe2 = mon_depickler_ext_2.load()
-                    print(cluster[i][0])
-                    if (cluster[0], cluster[i]) in dico_comp.keys() :
-                        place_i = 1
-                    else :
-                        place_i = 0
-                    
-                    graphe_comp = dico_comp[(cluster[abs(place_i-1)*i], cluster[place_i*i])]["graphe"]
-                    compteur = 0
-                    a_enlever = []
-                    for u,v,data in liste_aretes :
-                        ok = False
-                        u2 = -1
-                        v2 = -1
-                        for noeud in graphe_comp.nodes() :
-                            if noeud[abs(place_i-1)] == u :
-                                u2 = noeud[place_i]
-                            if noeud[abs(place_i-1)] == v :
-                                v2 = noeud[place_i]
-                        if u2 != -1 and v2 != -1 :
-                            if (u2,v2) in graphe2.edges() :
-                                
-                                for edge in graphe2[u2][v2] :
-                                    if graphe2[u2][v2][edge]["label"] == data["label"] :
-                                        ok = True
-                        else :
-                            print("probleme !!!")
-                        if not ok :
-                            a_enlever.append((u,v,data))
-                    for elt in a_enlever :
-                        del(liste_aretes[liste_aretes.index(elt)])
-            
-            for u,v,data in liste_aretes :
-                graphe_commun.add_edge(u,v,**data)
-    #     
-            nx.set_node_attributes(graphe_commun, [], "espacement_motif")
-    #         noeuds_isoles_a_enlever = []
-            print("gros ramou")
-            print(graphe_commun.edges.data())
+            liste_sommets_motifs.extend([1,2,3,4,5])
+            print(liste_sommets_motifs)
+            print(len(liste_cliques))
+            #return liste_cliques
             #exit(0)
             
-            ## gestion des attributs des noeuds
+#             for i in range(1,len(cluster)) :
+#                 with open(rep_extension+"/"+"fichier_"+cluster[i][0]+"_"+str(cluster[i][1])+"_5.pickle", 'rb') as fichier_ext_2 :
+#                     mon_depickler_ext_2 = pickle.Unpickler(fichier_ext_2)
+#                     graphe2 = mon_depickler_ext_2.load()
+                    
 
-            chaines = [[1]]
-            for i in range(1,5) :
-                    compteur = i
-                    if i != 1 : chaines.append([i])
-                    liaison_B53 = True
-                    while liaison_B53 :
-                        liaison_B53 = False
-                        temp = compteur
-                        if i == 1 or i == 4 :
-                            for voisin in graphe.successors(compteur) :
-                                for arc in graphe[compteur][voisin] :
-                                    if voisin not in [1,2,3,4] and voisin not in chaines[len(chaines)-1] and graphe[compteur][voisin][arc]["label"] == 'B53' :
-                                        liaison_B53 = True
-                                        temp = voisin
-                                        chaines[len(chaines)-1].append(voisin)
-                        else :            
-                            for voisin in graphe.predecessors(compteur) :
-                                for arc in graphe[voisin][compteur] :
-                                    if voisin not in [1,2,3,4] and voisin not in chaines[len(chaines)-1] and graphe[voisin][compteur][arc]["label"] == 'B53' :
-                                        liaison_B53 = True
-                                        temp = voisin
-                                        chaines[len(chaines)-1].append(voisin)
-                        compteur = temp
-            noeuds_isoles_a_enlever = []            
-            for noeud in graphe_commun.nodes() :
-                    
-                    liaison_b53_a_mettre = []
-                    
-                    liaison_b53_a_mettre.append(suivant_existe(noeud, graphe, liste_cliques, 0)) 
-                    #print("gros rat")
-                    #print(liaison_b53_a_mettre)
-                    
-                    a_enlever = []
-                    espacement_motif = []
-                     
-                    mini_poids = graphe.nodes[noeud]["poids"]
-                    chaine = graphe.nodes[noeud]["chaine"]
-                    liste_poids = []
-                     
-                    voisins = graphe_commun[noeud]
-            #                 print(voisins)
-    #                 liaison_autre_que_b53 = False
-    #                 if len(voisins) == 1 :
-    #                     for edge in graphe_commun[noeud][next(iter(voisins))] :
-    #                         if graphe_commun[noeud][next(iter(voisins))][edge]["label"] != 'B53' :
-    #                             liaison_autre_que_b53 = True
-    #                 if noeud == (5,5) :
-    #                     print("petit rat")
-    #                     print(len(voisins))
-    #                     print(liaison_autre_que_b53)           
-                    if len(voisins) >= 1  : ## si pas de voisin, on l enleve
-                        compteur = 1
-                        for ch in chaines :
-                            if noeud in ch :
-                                espacement_motif.append(abs(graphe.nodes[noeud]["position"][0]-graphe.nodes[compteur]["position"][0]))
-                            compteur += 1
-             
-                        for i in range(1,len(cluster)) :
-                            with open(rep_extension+"/"+"fichier_"+cluster[i][0]+"_"+str(cluster[i][1])+".pickle", 'rb') as fichier_ext_2 :
-                                mon_depickler_ext_2 = pickle.Unpickler(fichier_ext_2)
-                                graphe2 = mon_depickler_ext_2.load()
-                                if (cluster[0], cluster[i]) in dico_comp.keys() :
-                                    place_i = 1
-                                else :
-                                    place_i = 0
-                                   
-                                for noeud2 in dico_comp[(cluster[abs(place_i-1)*i], cluster[place_i*i])]["graphe"].nodes() :
-                                    if noeud == noeud2[abs(place_i-1)] :
-                                        graphe_commun.nodes[noeud]["num_seq"].append((cluster[i], graphe2.nodes[noeud2[place_i]]["position"], graphe2.nodes[noeud2[place_i]]["num_ch"]))
-                                        
-                                        for elt in chaine :
-                                            if elt not in graphe2.nodes[noeud2[place_i]]["chaine"] :
-                                                a_enlever.append(elt)
-                                        if mini_poids > graphe2.nodes[noeud2[place_i]]["poids"] :
-                                            mini_poids = graphe2.nodes[noeud2[place_i]]["poids"]
-                                            #print(mini_poids)
-                                            #print(cluster[0])
-                                            #print(cluster[i])
-                                        if graphe2.nodes[noeud2[place_i]]["poids"] not in liste_poids :
-                                            liste_poids.append(graphe2.nodes[noeud2[place_i]]["poids"])
-                                        #print("tout petit rat")  
-                                        compteur = 1
-            #                                     print("rat")
-            #                                     print(noeud[place_0])
-            #                                     print(chaines)
-                                        for ch in chaines :
-                                            if noeud in ch :
-                                                espacement_motif.append(abs(graphe2.nodes[noeud2[place_i]]["position"][0]-graphe2.nodes[compteur]["position"][0]))
-                                                 
-                                            compteur += 1
-                                        #print(noeud)
-                                        liaison_b53_a_mettre.append(suivant_existe(noeud2[place_i], graphe2, liste_cliques, i)) 
-            #                     print("ramous")
-            #                     print(espacement_motif)
-                        graphe_commun.nodes[noeud]["espacement_motif"] = list(espacement_motif)
-            #                     print(a_enlever)
-                        for elt in a_enlever :
-                            if elt in chaine :
-                                chaine.remove(elt)
-                        #print("gros rat")
-                        #print(liste_poids)
-            #                 a_enlever = []
-            #                 if len(liste_poids) > 1 :
-            #                     for u,v,key,data in digraphe_commun.edges(data=True, keys=True) :
-            #                         if u == noeud :
-            #                             if data["label"] == 'B53' :
-            #                                 a_enlever.append((u,v,key))
-            #                 print("gros rat")
-            #                 print(a_enlever)
-            #                 for elt in a_enlever :
-            #                     digraphe_commun.remove_edge(elt[0], elt[1], key=elt[2])
-                         
-             
-                        graphe_commun.nodes[noeud]["poids"] = mini_poids          
-                        graphe_commun.nodes[noeud]["chaine"] = chaine
-                        
-                        liaison_b53_a_ajouter = True
-                        for elt in liaison_b53_a_mettre :
-                            if elt == -1  :
-                                liaison_b53_a_ajouter = False
-                        #print("ramou")
-                        #print(liaison_b53_a_mettre)
-                        #print(liaison_b53_a_ajouter)
-                        if liaison_b53_a_ajouter : 
-                            graphe_commun.add_edge(noeud, liaison_b53_a_mettre[0], label='B53', long_range=False)
-                        
-                        chaine_position = []
-                        for i in range(4) :
-                            for j in range(len(chaines[i])) :
-                                if noeud == chaines[i][j] :
-            #                             print(num_noeud)
-            #                             print(chaines[i][j])
-                                    if i == 0 or i == 3 :
-                                        chaine_position.append(j)
-                                    else :
-                                        chaine_position.append(10-j)
-                        graphe_commun.nodes[noeud]["position"] = chaine_position
-                            
-                    else : 
-                        noeuds_isoles_a_enlever.append(noeud)
-            for elt in noeuds_isoles_a_enlever :
-                graphe_commun.remove_node(elt)
-            for i in range(1,6) :
-                graphe_commun.nodes[noeud]["positon"] = [i]
-    #       
             
-      
-            #print(graphe_commun.nodes.data())
-    #         
-            return graphe_commun, liste_cliques  
+            ## remplissage du graphe commun
+            with open(rep_extension+"/"+"fichier_"+cluster[0][0]+"_"+str(cluster[0][1])+"_2.pickle", 'rb') as fichier_ext :
+                mon_depickler_ext = pickle.Unpickler(fichier_ext)
+                graphe = mon_depickler_ext.load()
+    
+                for noeud in liste_sommets_motifs :
+                    graphe.nodes[noeud].update({'num_seq' : [(cluster[0], graphe.nodes[noeud]["position"], graphe.nodes[noeud]["num_ch"])]})
+                    graphe_commun.add_node(noeud, **graphe.nodes[noeud])
+                
+                print(graphe_commun.nodes.data())
+               
+                ## ajout des aretes apparaissant dans tous les graphes
+                liste_aretes = []
+                for u,v,data in graphe.edges(data=True) :
+                    if u in graphe_commun.nodes() and v in graphe_commun.nodes() and data["label"] != 'B53' :
+                        if (u,v, data) not in liste_aretes : 
+                            liste_aretes.append((u,v,data))
+                 
+                for i in range(1,len(cluster)) :
+                    with open(rep_extension+"/"+"fichier_"+cluster[i][0]+"_"+str(cluster[i][1])+"_2.pickle", 'rb') as fichier_ext_2 :
+                        mon_depickler_ext_2 = pickle.Unpickler(fichier_ext_2)
+                        graphe2 = mon_depickler_ext_2.load()
+                        print(cluster[i][0])
+                        if (cluster[0], cluster[i]) in dico_comp.keys() :
+                            place_i = 1
+                        else :
+                            place_i = 0
+                        
+                        graphe_comp = dico_comp[(cluster[abs(place_i-1)*i], cluster[place_i*i])]["graphe"]
+                        compteur = 0
+                        a_enlever = []
+                        for u,v,data in liste_aretes :
+                            ok = False
+                            u2 = -1
+                            v2 = -1
+                            for noeud in graphe_comp.nodes() :
+                                if noeud[abs(place_i-1)] == u :
+                                    u2 = noeud[place_i]
+                                if noeud[abs(place_i-1)] == v :
+                                    v2 = noeud[place_i]
+                            if u2 != -1 and v2 != -1 :
+                                if (u2,v2) in graphe2.edges() :
+                                    
+                                    for edge in graphe2[u2][v2] :
+                                        if graphe2[u2][v2][edge]["label"] == data["label"] :
+                                            ok = True
+                            else :
+                                print("probleme !!!")
+                            if not ok :
+                                a_enlever.append((u,v,data))
+                        for elt in a_enlever :
+                            del(liste_aretes[liste_aretes.index(elt)])
+                
+                for u,v,data in liste_aretes :
+                    graphe_commun.add_edge(u,v,**data)
+                
+                print(graphe_commun.nodes.data())
+                print(graphe_commun.number_of_nodes())
+                
+        #     
+                nx.set_node_attributes(graphe_commun, [], "espacement_motif")
+        #         noeuds_isoles_a_enlever = []
+                print("gros ramou")
+                print(graphe_commun.edges.data())
+                #exit(0)
+                
+                ## gestion des attributs des noeuds
+    
+                chaines = [[1]]
+                for i in range(1,5) :
+                        compteur = i
+                        if i != 1 : chaines.append([i])
+                        liaison_B53 = True
+                        while liaison_B53 :
+                            liaison_B53 = False
+                            temp = compteur
+                            if i == 1 or i == 4 :
+                                for voisin in graphe.successors(compteur) :
+                                    for arc in graphe[compteur][voisin] :
+                                        if voisin not in [1,2,3,4] and voisin not in chaines[len(chaines)-1] and graphe[compteur][voisin][arc]["label"] == 'B53' :
+                                            liaison_B53 = True
+                                            temp = voisin
+                                            chaines[len(chaines)-1].append(voisin)
+                            else :            
+                                for voisin in graphe.predecessors(compteur) :
+                                    for arc in graphe[voisin][compteur] :
+                                        if voisin not in [1,2,3,4] and voisin not in chaines[len(chaines)-1] and graphe[voisin][compteur][arc]["label"] == 'B53' :
+                                            liaison_B53 = True
+                                            temp = voisin
+                                            chaines[len(chaines)-1].append(voisin)
+                            compteur = temp
+                noeuds_isoles_a_enlever = []            
+                for noeud in graphe_commun.nodes() :
+                        print("noeuds")
+                        print(noeud)
+                        liaison_b53_a_mettre = []
+                        
+                        liaison_b53_a_mettre.append(suivant_existe(noeud, graphe, liste_cliques, 0)) 
+                        #print("gros rat")
+                        #print(liaison_b53_a_mettre)
+                        
+                        a_enlever = []
+                        espacement_motif = []
+                         
+                        mini_poids = graphe.nodes[noeud]["poids"]
+                        chaine = list(graphe.nodes[noeud]["chaine"])
+                        liste_poids = []
+#                         print("chaine")
+#                         print(chaine)
+                        
+                         
+                        voisins = graphe_commun[noeud]
+                #                 print(voisins)
+        #                 liaison_autre_que_b53 = False
+        #                 if len(voisins) == 1 :
+        #                     for edge in graphe_commun[noeud][next(iter(voisins))] :
+        #                         if graphe_commun[noeud][next(iter(voisins))][edge]["label"] != 'B53' :
+        #                             liaison_autre_que_b53 = True
+        #                 if noeud == (5,5) :
+        #                     print("petit rat")
+        #                     print(len(voisins))
+        #                     print(liaison_autre_que_b53)           
+                        if len(voisins) >= 1  : ## si pas de voisin, on l enleve
+                            compteur = 1
+                            for ch in chaines :
+                                if noeud in ch :
+                                    espacement_motif.append(abs(graphe.nodes[noeud]["position"][0]-graphe.nodes[compteur]["position"][0]))
+                                compteur += 1
+                 
+                            for i in range(1,len(cluster)) :
+                            
+                                with open(rep_extension+"/"+"fichier_"+cluster[i][0]+"_"+str(cluster[i][1])+"_2.pickle", 'rb') as fichier_ext_2 :
+                                    mon_depickler_ext_2 = pickle.Unpickler(fichier_ext_2)
+                                    graphe2 = mon_depickler_ext_2.load()
+                                    
+                                    
+                                    if (cluster[0], cluster[i]) in dico_comp.keys() :
+                                        place_i = 1
+                                    else :
+                                        place_i = 0
+                                       
+                                    for noeud2 in dico_comp[(cluster[abs(place_i-1)*i], cluster[place_i*i])]["graphe"].nodes() :
+                                        if noeud == noeud2[abs(place_i-1)] :
+                                            graphe_commun.nodes[noeud]["num_seq"].append((cluster[i], graphe2.nodes[noeud2[place_i]]["position"], graphe2.nodes[noeud2[place_i]]["num_ch"]))
+                                            
+                                            for elt in chaine :
+                                                if elt not in graphe2.nodes[noeud2[place_i]]["chaine"] :
+    
+                                                    a_enlever.append(elt)
+#                                                     print("gros tas")
+#                                                     print(cluster[i])
+#                                                     print(elt)
+#                                                     print(noeud2[place_i])
+#                                                     print(graphe2.nodes[noeud2[place_i]]["chaine"])
+                                            if mini_poids > graphe2.nodes[noeud2[place_i]]["poids"] :
+                                                mini_poids = graphe2.nodes[noeud2[place_i]]["poids"]
+                                                #print(mini_poids)
+                                                #print(cluster[0])
+                                                #print(cluster[i])
+                                            if graphe2.nodes[noeud2[place_i]]["poids"] not in liste_poids :
+                                                liste_poids.append(graphe2.nodes[noeud2[place_i]]["poids"])
+                                            #print("tout petit rat")  
+                                            compteur = 1
+                #                                     print("rat")
+                #                                     print(noeud[place_0])
+                #                                     print(chaines)
+                                            for ch in chaines :
+                                                if noeud in ch :
+                                                    espacement_motif.append(abs(graphe2.nodes[noeud2[place_i]]["position"][0]-graphe2.nodes[compteur]["position"][0]))
+                                                     
+                                                compteur += 1
+                                            #print(noeud)
+                                            print(cluster[i])
+                                            print(noeud2[place_i])
+                                            print(cluster)
+                                            liaison_b53_a_mettre.append(suivant_existe(noeud2[place_i], graphe2, liste_cliques, i)) 
+                #                     print("ramous")
+                #                     print(espacement_motif)
+                            graphe_commun.nodes[noeud]["espacement_motif"] = list(espacement_motif)
+                #                     print(a_enlever)
+                            
+                            for elt in a_enlever :
+                                if elt in chaine :
+                                    chaine.remove(elt)
+#                             print("chaines2")
+#                             print(chaine)
+                            #if noeud == 20  :
+#                             print(graphe_commun.nodes[noeud])
+                            #print("gros rat")
+                            #print(liste_poids)
+                #                 a_enlever = []
+                #                 if len(liste_poids) > 1 :
+                #                     for u,v,key,data in digraphe_commun.edges(data=True, keys=True) :
+                #                         if u == noeud :
+                #                             if data["label"] == 'B53' :
+                #                                 a_enlever.append((u,v,key))
+                #                 print("gros rat")
+                #                 print(a_enlever)
+                #                 for elt in a_enlever :
+                #                     digraphe_commun.remove_edge(elt[0], elt[1], key=elt[2])
+                             
+                 
+                            graphe_commun.nodes[noeud]["poids"] = mini_poids          
+                            graphe_commun.nodes[noeud]["chaine"] = list(chaine)
+                            
+                            liaison_b53_a_ajouter = True
+                            for elt in liaison_b53_a_mettre :
+                                if elt == -1  :
+                                    liaison_b53_a_ajouter = False
+                            #print("ramou")
+                            #print(liaison_b53_a_mettre)
+                            #print(liaison_b53_a_ajouter)
+                            if liaison_b53_a_ajouter : 
+                                graphe_commun.add_edge(noeud, liaison_b53_a_mettre[0], label='B53', long_range=False)
+                            
+                            chaine_position = []
+                            for i in range(4) :
+                                for j in range(len(chaines[i])) :
+                                    if noeud == chaines[i][j] :
+                #                             print(num_noeud)
+                #                             print(chaines[i][j])
+                                        if i == 0 or i == 3 :
+                                            chaine_position.append(j)
+                                        else :
+                                            chaine_position.append(10-j)
+                            graphe_commun.nodes[noeud]["position"] = chaine_position
+                                
+                        else : 
+                            noeuds_isoles_a_enlever.append(noeud)
+                for elt in noeuds_isoles_a_enlever :
+                    graphe_commun.remove_node(elt)
+                for i in range(1,6) :
+                    graphe_commun.nodes[noeud]["positon"] = [i]
+        #       
+                
           
+                print(graphe_commun.nodes.data())
+                print(graphe_commun.number_of_nodes())
+                for noeud, data in graphe_commun.nodes(data=True) :
+                    print(noeud, data)
+                #exit()
+                return graphe_commun, liste_cliques  
+#         else :
+#             if (cluster[0], cluster[1]) in dico_comp.keys() :
+#                 return dico_comp[(cluster[0], cluster[1])]["graphe"], []
+#             else :
+#                 return dico_comp[(cluster[1], cluster[0])]["graphe"], []
+        
 
 ''' recherche le plus grand sous-graphe commun dans un cluster V1 (en prenant seulement les sommets superposes entre deux graphes, puis en regardant quels sommets gardes avec un troisieme graphe etc...)
 (mais le resultat change avec l'ordre de traitement des graphes du cluster)
@@ -1202,7 +1256,9 @@ def draw_network(G,edges_sans_label, pos,ax,sg=None):
             if data["label"] == 'CWW' :
                 color = 'blue'
             elif data["label"] == '0':
-                color = 'grey'
+                color = 'blue'
+            elif data["label"] == 'B53' :
+                color = 'green'
             else :
                 color = 'black'
             
@@ -1427,70 +1483,117 @@ def draw(G, rep_sauve, num, taille_comp, commut):
 num : numero du cluster
 taille_comp : taille d'extension
 commut : depend de G'''
-def draw_new_data(G, rep_sauve, num, taille_comp, commut):
-
+def draw_new_data(G, rep_sauve, num, taille_comp, commut, vrai_graphe, **kwargs):
+    motif = kwargs.get("motif", [])
+    num_graphe = kwargs.get("num_graphe", [])
     print(G.nodes.data())
     print(G.edges.data())
     
     nx.set_node_attributes(G, (33,33), "coordonnees")
-    if commut :
-        G.nodes[1]["coordonnees"] = (0.0,0.5)
-        G.nodes[2]["coordonnees"] = (2.0,0.5)
-        G.nodes[3]["coordonnees"] = (0.0,0.0)
-        G.nodes[4]["coordonnees"] = (2.0,0.0)
-        G.nodes[5]["coordonnees"] = (3.0,0.5)
+    if not vrai_graphe :
+        if commut :
+            G.nodes[1]["coordonnees"] = (0.0,0.5)
+            G.nodes[2]["coordonnees"] = (2.0,0.5)
+            G.nodes[3]["coordonnees"] = (0.0,0.0)
+            G.nodes[4]["coordonnees"] = (2.0,0.0)
+            G.nodes[5]["coordonnees"] = (3.0,0.5)
+        else :
+            G.nodes[(1,1)]["coordonnees"] = (0.0,0.5)
+            G.nodes[(2,2)]["coordonnees"] = (2.0,0.5)
+            G.nodes[(3,3)]["coordonnees"] = (0.0,0.0)
+            G.nodes[(4,4)]["coordonnees"] = (2.0,0.0)
+            G.nodes[(5,5)]["coordonnees"] = (3.0,0.5)
     else :
-        G.nodes[(1,1)]["coordonnees"] = (0.0,0.5)
-        G.nodes[(2,2)]["coordonnees"] = (2.0,0.5)
-        G.nodes[(3,3)]["coordonnees"] = (0.0,0.0)
-        G.nodes[(4,4)]["coordonnees"] = (2.0,0.0)
-        G.nodes[(5,5)]["coordonnees"] = (3.0,0.5)
+        G.nodes[motif[0]]["coordonnees"] = (0.0,0.5)
+        G.nodes[motif[1]]["coordonnees"] = (2.0,0.5)
+        G.nodes[motif[2]]["coordonnees"] = (0.0,0.0)
+        G.nodes[motif[3]]["coordonnees"] = (2.0,0.0)
+        G.nodes[motif[4]]["coordonnees"] = (3.0,0.5)
+        
      
 #                 fichier.write(str(element)+"\n") 
 #                 fichier.write(str(G.number_of_nodes())+"\n") 
     print(G.edges.data())
-
-    nodes_list = [u for u,d in G.nodes(data=True)]#and len(G[u]) > 0] 
+    if not vrai_graphe :
+        nodes_list = [1,2,3,4,5]
+    else :
+        nodes_list = [motif[0], motif[1], motif[2], motif[3], motif[4]]
+    nodes_list.extend([u for u,d in G.nodes(data=True) if u not in [1,2,3,4,5]])#and len(G[u]) > 0] 
     print(nodes_list)
 
     coordonnees = []
     for noeud in nodes_list :
         #voisins = G[noeud]
-        print(noeud)
-        if noeud not in [1,2,3,4,5] :
-            if G.nodes[noeud]["type"] != None and G.nodes[noeud]["type"] != -1 :
-                    chaine = G.nodes[noeud]["chaine"][0]
+            print(noeud)
+        #if noeud not in [1,2,3,4,5] :
+#             if vrai_graphe :
+#                 for elt in G.nodes[noeud]["num_seq"] :
+#                     if elt[0] == num_graphe :
+#                         for noeud, data in dico_graphe[0].nodes(data=True) :
+#                             if data["fr3d"] == 
+        
+            
+            if G.nodes[noeud]["type"] != None and G.nodes[noeud]["type"] != -1  :
+                if G.nodes[noeud]["coordonnees"] == (33,33) :
+                    if not vrai_graphe :
+                        chaine = G.nodes[noeud]["chaine"][0]
+                    else :
+                        chaine = motif[G.nodes[noeud]["chaine"][0]-1]
                     #print(chaine)
                     if commut : 
-                        if chaine == 1 or chaine == 3 :
+                        if G.nodes[noeud]["chaine"][0] == 1 or G.nodes[noeud]["chaine"][0] == 3 :
+                            print(noeud)
+                            print(chaine)
                             G.nodes[noeud]["coordonnees"] =  (G.nodes[chaine]["coordonnees"][0], G.nodes[chaine]["coordonnees"][1] + (G.nodes[noeud]["position"][0] - G.nodes[chaine]["position"][0])/2) 
                         else :
                             G.nodes[noeud]["coordonnees"] =  (G.nodes[chaine]["coordonnees"][0], G.nodes[chaine]["coordonnees"][1] + (G.nodes[chaine]["position"][0] - G.nodes[noeud]["position"][0])/2) 
                     else :
-                        if chaine == 1 or chaine == 3 :
+                        if G.nodes[noeud]["chaine"][0] == 1 or G.nodes[noeud]["chaine"][0] == 3 :
                             G.nodes[noeud]["coordonnees"] =  (G.nodes[(chaine,chaine)]["coordonnees"][0], G.nodes[(chaine,chaine)]["coordonnees"][1] + (G.nodes[noeud]["position"][0] - G.nodes[(chaine,chaine)]["position"][0])/2) 
                         else :
                             G.nodes[noeud]["coordonnees"] =  (G.nodes[(chaine,chaine)]["coordonnees"][0], G.nodes[(chaine,chaine)]["coordonnees"][1] + (G.nodes[(chaine,chaine)]["position"][0] - G.nodes[noeud]["position"][0])/2) 
         
                     coordonnees.append(G.nodes[noeud]["coordonnees"])
-            else :
-                    voisin = list(G[noeud])
-                    print(len(voisin))
-                    print(voisin)
-                    if (G.nodes[voisin[0]]["coordonnees"][0] + 0.5, G.nodes[voisin[0]]["coordonnees"][1]) not in coordonnees :
-                        G.nodes[noeud]["coordonnees"] = (G.nodes[voisin[0]]["coordonnees"][0] + 0.5, G.nodes[voisin[0]]["coordonnees"][1])
-                        coordonnees.append(G.nodes[noeud]["coordonnees"])
-                    elif  (G.nodes[voisin[0]]["coordonnees"][0] - 0.5, G.nodes[voisin[0]]["coordonnees"][1]) not in coordonnees :
-                        G.nodes[noeud]["coordonnees"] = (G.nodes[voisin[0]]["coordonnees"][0] - 0.5, G.nodes[voisin[0]]["coordonnees"][1])  
-                        coordonnees.append(G.nodes[noeud]["coordonnees"])  
-                    elif (G.nodes[voisin[0]]["coordonnees"][0] + 0.25, G.nodes[voisin[0]]["coordonnees"][1]+0.25) not in coordonnees :
-                        G.nodes[noeud]["coordonnees"] = (G.nodes[voisin[0]]["coordonnees"][0] + 0.25, G.nodes[voisin[0]]["coordonnees"][1]+0.25)  
-                        coordonnees.append(G.nodes[noeud]["coordonnees"])  
-                    elif (G.nodes[voisin[0]]["coordonnees"][0] - 0.25, G.nodes[voisin[0]]["coordonnees"][1]-0.25) not in coordonnees :
-                        G.nodes[noeud]["coordonnees"] = (G.nodes[voisin[0]]["coordonnees"][0] - 0.25, G.nodes[voisin[0]]["coordonnees"][1]-0.25)  
-                        coordonnees.append(G.nodes[noeud]["coordonnees"])  
-                    else :
-                        print("probleme")
+                print(noeud)
+                print("voisins")
+                for voisin in G[noeud] :
+                        print(voisin)
+                        if G.nodes[voisin]["coordonnees"] == (33,33) :
+                            if G.nodes[voisin]["type"] == None or G.nodes[voisin]["type"] == -1 :
+                                if (G.nodes[noeud]["coordonnees"][0] + 0.5, G.nodes[noeud]["coordonnees"][1]) not in coordonnees :
+                                    G.nodes[voisin]["coordonnees"] = (G.nodes[noeud]["coordonnees"][0] + 0.5, G.nodes[noeud]["coordonnees"][1])
+                                    coordonnees.append(G.nodes[voisin]["coordonnees"])
+                                elif  (G.nodes[noeud]["coordonnees"][0] - 0.5, G.nodes[noeud]["coordonnees"][1]) not in coordonnees :
+                                    G.nodes[voisin]["coordonnees"] = (G.nodes[noeud]["coordonnees"][0] - 0.5, G.nodes[noeud]["coordonnees"][1])  
+                                    coordonnees.append(G.nodes[voisin]["coordonnees"])  
+                                elif (G.nodes[noeud]["coordonnees"][0] + 0.25, G.nodes[noeud]["coordonnees"][1]+0.25) not in coordonnees :
+                                    G.nodes[voisin]["coordonnees"] = (G.nodes[noeud]["coordonnees"][0] + 0.25, G.nodes[noeud]["coordonnees"][1]+0.25)  
+                                    coordonnees.append(G.nodes[voisin]["coordonnees"])  
+                                elif (G.nodes[noeud]["coordonnees"][0] - 0.25, G.nodes[noeud]["coordonnees"][1]-0.25) not in coordonnees :
+                                    G.nodes[voisin]["coordonnees"] = (G.nodes[noeud]["coordonnees"][0] - 0.25, G.nodes[noeud]["coordonnees"][1]-0.25)  
+                                    coordonnees.append(G.nodes[voisin]["coordonnees"])  
+                                else :
+                                    print("probleme")
+                    
+
+#             else :
+#                     voisin = list(G[noeud])
+#                     print(len(voisin))
+#                     print(voisin)
+#                     if (G.nodes[voisin[0]]["coordonnees"][0] + 0.5, G.nodes[voisin[0]]["coordonnees"][1]) not in coordonnees :
+#                         G.nodes[noeud]["coordonnees"] = (G.nodes[voisin[0]]["coordonnees"][0] + 0.5, G.nodes[voisin[0]]["coordonnees"][1])
+#                         coordonnees.append(G.nodes[noeud]["coordonnees"])
+#                     elif  (G.nodes[voisin[0]]["coordonnees"][0] - 0.5, G.nodes[voisin[0]]["coordonnees"][1]) not in coordonnees :
+#                         G.nodes[noeud]["coordonnees"] = (G.nodes[voisin[0]]["coordonnees"][0] - 0.5, G.nodes[voisin[0]]["coordonnees"][1])  
+#                         coordonnees.append(G.nodes[noeud]["coordonnees"])  
+#                     elif (G.nodes[voisin[0]]["coordonnees"][0] + 0.25, G.nodes[voisin[0]]["coordonnees"][1]+0.25) not in coordonnees :
+#                         G.nodes[noeud]["coordonnees"] = (G.nodes[voisin[0]]["coordonnees"][0] + 0.25, G.nodes[voisin[0]]["coordonnees"][1]+0.25)  
+#                         coordonnees.append(G.nodes[noeud]["coordonnees"])  
+#                     elif (G.nodes[voisin[0]]["coordonnees"][0] - 0.25, G.nodes[voisin[0]]["coordonnees"][1]-0.25) not in coordonnees :
+#                         G.nodes[noeud]["coordonnees"] = (G.nodes[voisin[0]]["coordonnees"][0] - 0.25, G.nodes[voisin[0]]["coordonnees"][1]-0.25)  
+#                         coordonnees.append(G.nodes[noeud]["coordonnees"])  
+#                     else :
+#                         print("probleme")
                         
 
     print("pos")            
@@ -1580,20 +1683,20 @@ def draw_new_data(G, rep_sauve, num, taille_comp, commut):
 
     #edge_labels=dict([((u,v,),d["label"])for u,v,d in G.edges(data=True) if d["label"] != 'B53' and d["label"] != 'CWW' and ((u,v) not in courbes and (v,u) not in courbes)])
     #print(edge_labels)
-    node_labels=dict([(u,(d["type"], d["poids"]))for u,d in G.nodes(data=True) if u in nodes_list and d["type"] != -1 and d["type"] != None])## if d["type"] != None])
+    node_labels=dict([(u,(u))for u,d in G.nodes(data=True) ])#if u in nodes_list and d["type"] != -1 and d["type"] != None])## if d["type"] != None])
     #node_labels=dict([(u, (u,d["type"], d["poids"])) if d["type"] != None else (u, (u)) for u,d in G.nodes(data=True) ])
     #node_labels=dict([(u, (u)) for u,d in G.nodes(data=True) ])
     print(node_labels)
     nx.draw_networkx_nodes(G, pos, node_size=150, nodelist=nodes_list, node_color="orange")
                 #nx.draw_networkx_nodes(G, pos, cmap=plt.get_cmap('jet'), 
                 #           node_color = values, node_size = 500)
-    nx.draw_networkx_labels(G, pos, labels = node_labels, font_size = 8)
+    nx.draw_networkx_labels(G, pos, labels = node_labels, font_size = 12)
     #nx.draw_networkx_edges(G, pos, edgelist=red_edges, edge_color='r', edge_labels = edge_labels)
     #nx.draw_networkx_edges(G, pos, edgelist=blue_edges, edge_color='b', edge_labels = edge_labels)
     #nx.draw_networkx_edges(G, pos, edgelist=green_edges, edge_color='g', edge_labels = edge_labels)
     #nx.draw_networkx_edges(G, pos, edgelist=black_edges, edge_labels = edge_labels)
     
-    edge_colors = ['black' if (u,v) in black_edges else 'blue' if (u,v) in blue_edges else 'green' if (u,v) in green_edges else 'grey' for u,v,d in G.edges(data=True) if (u,v) not in courbes and (v,u) not in courbes and d["label"] != '0' and u in nodes_list and v in nodes_list]
+    edge_colors = ['black' if (u,v) in black_edges else 'blue' if (u,v) in blue_edges else 'green' if (u,v) in green_edges else 'blue' for u,v,d in G.edges(data=True) if (u,v) not in courbes and (v,u) not in courbes and d["label"] != '0' and u in nodes_list and v in nodes_list]
 #         print(black_edges)
 #         print(red_edges)
 #         print(edge_colors)
@@ -1608,7 +1711,7 @@ def draw_new_data(G, rep_sauve, num, taille_comp, commut):
     draw_network(G, courbes, pos,ax)
     print("petit rat")
     plt.axis('off')
-    plt.savefig(NEW_EXTENSION_PATH_TAILLE+rep_sauve+"/graphe_commun_cluster_%s_%s.png"%(num, taille_comp)) # save as png
+    #plt.savefig(NEW_EXTENSION_PATH_TAILLE+rep_sauve+"/graphe_commun_global_cluster_%s_%s_%s.png"%(num, taille_comp, num_graphe)) # save as png
     #plt.savefig("graphes_extension/fichier_1FJG_A_48_8.png") # save as png
     print(courbes)
     print(nodes_list)
@@ -1618,9 +1721,10 @@ def draw_new_data(G, rep_sauve, num, taille_comp, commut):
             print(data)
     #plt.show()
     
-    with open(NEW_EXTENSION_PATH_TAILLE+rep_sauve+"/graphe_commun_cluster_%s_%s_avec_coord.pickle"%(num, taille_comp), 'wb') as fichier_ecriture :
-        mon_pickler = pickle.Pickler(fichier_ecriture)
-        mon_pickler.dump(G)
+#     with open(NEW_EXTENSION_PATH_TAILLE+rep_sauve+"/graphe_commun_global_cluster_%s_%s_avec_coord.pickle"%(num, taille_comp), 'wb') as fichier_ecriture :
+#         mon_pickler = pickle.Pickler(fichier_ecriture)
+#         mon_pickler.dump(G)
+    plt.show()
     plt.clf()
     plt.close()
     
@@ -1672,6 +1776,18 @@ def espacement_max(rep, taille_ext, num):
             
 
 if __name__ == '__main__':
+    with open("/media/coline/Maxtor/clustering_perez_tot_new_data_100320_sim_par_branche_0.65.pickle", 'rb') as fichier_sortie :
+        mon_depickler = pickle.Unpickler(fichier_sortie)
+        clusters = mon_depickler.load()
+        
+        digraphe_commun, liste_cliques = commun_cluster_clique_new_data(clusters[55], "/media/coline/Maxtor/dico_new_100320_sim_par_branche_0.65.pickle", NEW_EXTENSION_PATH_TAILLE)
+
+        draw_new_data(digraphe_commun, "Graphes_communs_avril_2020", 56, 4, True)
+        
+        exit()
+        
+
+    
     for j in range(len(CLUSTERING_PEREZ_VERSION_NON_CAN_2)) :
         for i in range(4,11) :
             graphe_commun = commun_cluster_clique(CLUSTERING_PEREZ_VERSION_NON_CAN_2[j], EXTENSION_PATH%i+"dico_comp_complet_metrique_toutes_aretes_coeff_all1_taille_%s.pickle"%(i), EXTENSION_PATH_TAILLE%i)

@@ -11,8 +11,7 @@ import networkx as nx
 import pickle
 import time
 import copy
-from recup_data.new_algo_comparaison import calcul_sim_aretes_avec_coeff,\
-    recup_chaines, chaines_reliees
+from recup_data.new_algo_comparaison import recup_chaines, chaines_reliees
 from recup_data.constantes import NEW_EXTENSION_PATH_TAILLE, liste_pbs
 from recup_data.recup_new_data import recherche_composante_connexe
 
@@ -2058,7 +2057,7 @@ def new_heuristique(graphe1_deb, graphe2_deb):
                                     composantes_2.update({tuple(graphe2.nodes[elt]["num_composante"]) : list(compo)})
 #                                 print("roupoulou")
 #                                 print(composantes_2)
-                                del(composantes_2[comp2_max])
+                                #del(composantes_2[comp2_max])
                             else :
                                 ## cas ou comp2_max est constituee d'une seule chaine
                                 ## idem que le premier cas rencontre pour comp2_max
@@ -2247,23 +2246,23 @@ def new_heuristique(graphe1_deb, graphe2_deb):
     return sous_graphe_commun
     
 if __name__ == '__main__':
-    with open(NEW_EXTENSION_PATH_TAILLE+"fichier_4ybb_14_4.pickle", "rb") as fichier_graphe1 :
-                            mon_depickler_1 = pickle.Unpickler(fichier_graphe1)
-                            graphe1_vrai = mon_depickler_1.load()
-                                           
-    with open(NEW_EXTENSION_PATH_TAILLE+"fichier_4ybb_18_4.pickle", "rb") as fichier_graphe2 :
-                            mon_depickler_2 = pickle.Unpickler(fichier_graphe2)
-                            graphe2_vrai = mon_depickler_2.load()  
-                             
-    graphe_commun = new_heuristique(graphe1_vrai, graphe2_vrai)
-    print(graphe_commun.nodes.data())
-     
-    sim_1 = calcul_sim_aretes_avec_coeff(graphe1_vrai, graphe2_vrai, graphe_commun, "rat", 1, 1, 1)
-    print(sim_1)
-    dico_graphe = {(('4ybb', 14), ('4ybb', 18)) : {"graphe" : graphe_commun, "sim" : sim_1}}
-    with open("dico_algo_heuristique.pickle", 'wb') as fichier_graphe :
-        mon_pickler = pickle.Pickler(fichier_graphe)
-        mon_pickler.dump(dico_graphe) 
+#     with open(NEW_EXTENSION_PATH_TAILLE+"fichier_4ybb_14_4.pickle", "rb") as fichier_graphe1 :
+#                             mon_depickler_1 = pickle.Unpickler(fichier_graphe1)
+#                             graphe1_vrai = mon_depickler_1.load()
+#                                            
+#     with open(NEW_EXTENSION_PATH_TAILLE+"fichier_4ybb_18_4.pickle", "rb") as fichier_graphe2 :
+#                             mon_depickler_2 = pickle.Unpickler(fichier_graphe2)
+#                             graphe2_vrai = mon_depickler_2.load()  
+#                              
+#     graphe_commun = new_heuristique(graphe1_vrai, graphe2_vrai)
+#     print(graphe_commun.nodes.data())
+#      
+#     sim_1 = calcul_sim_aretes_avec_coeff(graphe1_vrai, graphe2_vrai, graphe_commun, "rat", 1, 1, 1)
+#     print(sim_1)
+#     dico_graphe = {(('4ybb', 14), ('4ybb', 18)) : {"graphe" : graphe_commun, "sim" : sim_1}}
+#     with open("dico_algo_heuristique.pickle", 'wb') as fichier_graphe :
+#         mon_pickler = pickle.Pickler(fichier_graphe)
+#         mon_pickler.dump(dico_graphe) 
     
     #exit()
     
@@ -2280,44 +2279,88 @@ if __name__ == '__main__':
 #             
 #             print(dico_graphe_exact[(('5dm6', 9), ('1l8v', 1))])
             #exit()
-    with open("/media/coline/Maxtor/dico_new_060420_avec_graphes_en_plus.pickle", "rb") as fichier_dico_graphe_algo_exact :
+    with open("dico_new_060420_avec_graphes_en_plus.pickle", "rb") as fichier_dico_graphe_algo_exact :
         mon_depickler = pickle.Unpickler(fichier_dico_graphe_algo_exact)
         dico_graphe_sim = mon_depickler.load()
-        with open("dico_algo_heuristique_new_v.pickle", 'rb') as fichier_graphe :
+        with open("dico_algo_heuristique_new_v_90b17ce.pickle", 'rb') as fichier_graphe :
             mon_depickler = pickle.Unpickler(fichier_graphe)
             dico_graphe = mon_depickler.load() 
             
-            with open("fichier_diff.pickle", 'rb') as fichier_diff :
+            liste_groupe_53 = [('4u27', 54),('4ybb', 12),('4w2g', 52),('2zjr', 3),('4v67', 7),('5wfs', 19),('4y4o', 38),('4ybb', 21),('6eri', 14),('1u9s', 1),('6ek0', 10)]  
+            for i in range(len(liste_groupe_53)) :
+                for j in range(i+1, len(liste_groupe_53)) :
+                    if (liste_groupe_53[i], liste_groupe_53[j]) in dico_graphe.keys() :
+                        print(dico_graphe[(liste_groupe_53[i], liste_groupe_53[j])])
+                    else :
+                        print(dico_graphe[(liste_groupe_53[j], liste_groupe_53[i])])
+                    if (liste_groupe_53[i], liste_groupe_53[j]) in dico_graphe_sim.keys() :
+                        print(dico_graphe_sim[(liste_groupe_53[i], liste_groupe_53[j])])
+                    else :
+                        print(dico_graphe_sim[(liste_groupe_53[j], liste_groupe_53[i])])
+            
+            with open("fichier_diff_90b17ce.pickle", 'rb') as fichier_diff :
                     mon_depickler = pickle.Unpickler(fichier_diff)
                     liste_pas_pareil_1 = mon_depickler.load()
                     
                     compteur_plus = 0
                     compteur_moins = 0
+                    diff_max = 0.0
+                    diff_min = 1.0
+                    diff_moy = 0
+                    petite_sim = 0
+                    grande_sim = 0
                     for elt in liste_pas_pareil_1 : 
+                        if elt[0] in [('4u27', 54),('4ybb', 12),('4w2g', 52),('2zjr', 3),('4v67', 7),('5wfs', 19),('4y4o', 38),('4ybb', 21),('6eri', 14),('1u9s', 1),('6ek0', 10)] or elt[1] in [('4u27', 54),('4ybb', 12),('4w2g', 52),('2zjr', 3),('4v67', 7),('5wfs', 19),('4y4o', 38),('4ybb', 21),('6eri', 14),('1u9s', 1),('6ek0', 10)] :
+                            print("ramous")
+                            print(dico_graphe_sim[elt]["sim"])
+                            print(dico_graphe[elt]["sim"])
                         #print(elt)
                         if elt in dico_graphe_sim.keys() :
                             if dico_graphe_sim[elt]["sim"] < dico_graphe[elt]["sim"] :
                                 compteur_plus += 1
-                                print(dico_graphe_sim[elt]["sim"])
-                                print(dico_graphe[elt]["sim"])
+#                                 print(dico_graphe_sim[elt]["sim"])
+#                                 print(dico_graphe[elt]["sim"])
                             else :
                                 compteur_moins += 1
                                 print(elt)
-                            
+                                if dico_graphe[elt]["sim"] < 0.7 :
+                                    petite_sim += 1
+                                else :
+                                    grande_sim += 1
+                                if dico_graphe_sim[elt]["sim"] - dico_graphe[elt]["sim"] < diff_min :
+                                    diff_min =  dico_graphe_sim[elt]["sim"] - dico_graphe[elt]["sim"]
+                                if dico_graphe_sim[elt]["sim"] - dico_graphe[elt]["sim"] > diff_max :
+                                    diff_max =  dico_graphe_sim[elt]["sim"] - dico_graphe[elt]["sim"]
+                                diff_moy += dico_graphe_sim[elt]["sim"] - dico_graphe[elt]["sim"]
                         else :
                             if dico_graphe_sim[(elt[1], elt[0])]["sim"] < dico_graphe[elt]["sim"] :
                                 compteur_plus += 1
-                                print(dico_graphe_sim[(elt[1], elt[0])]["sim"])
-                                print(dico_graphe[elt]["sim"])
+#                                 print(dico_graphe_sim[(elt[1], elt[0])]["sim"])
+#                                 print(dico_graphe[elt]["sim"])
                             else :
                                 compteur_moins += 1
                                 print(elt)
+                                if dico_graphe[elt]["sim"] < 0.7 :
+                                    petite_sim += 1
+                                else :
+                                    grande_sim += 1
+                                if dico_graphe_sim[(elt[1], elt[0])]["sim"] - dico_graphe[elt]["sim"] < diff_min :
+                                    diff_min =  dico_graphe_sim[(elt[1], elt[0])]["sim"] - dico_graphe[elt]["sim"]
+                                if dico_graphe_sim[(elt[1], elt[0])]["sim"] - dico_graphe[elt]["sim"] > diff_max :
+                                    diff_max =  dico_graphe_sim[(elt[1], elt[0])]["sim"] - dico_graphe[elt]["sim"]
+                                diff_moy += dico_graphe_sim[(elt[1], elt[0])]["sim"] - dico_graphe[elt]["sim"]
 #                             print(dico_graphe_sim[(elt[1], elt[0])]["sim"])
 #                             print(dico_graphe[elt]["sim"])
                         
                     print(len(liste_pas_pareil_1))
                     print(compteur_plus)
                     print(compteur_moins)
+                    print(diff_min)
+                    print(diff_max)
+                    print(diff_moy/len(liste_pas_pareil_1))
+                    
+                    print(petite_sim)
+                    print(grande_sim)
                     exit()
         
     with open("fichier_diff_289b4cd.pickle", 'rb') as fichier_diff :
@@ -2329,7 +2372,7 @@ if __name__ == '__main__':
         if elt not in liste_pas_pareil_1 :
             print(elt)
             
-    #exit()
+    exit()
     
     
 #     with open("fichier_diff.pickle", 'rb') as fichier_diff :

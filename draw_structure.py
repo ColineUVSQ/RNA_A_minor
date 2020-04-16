@@ -53,7 +53,9 @@ def draw_network(G,edges, edges_sans_label, pos,ax,sg=None):
                 rad=(rad+np.sign(rad)*0.1)*-1
             alpha=1.0
             #color='k'
-            if data["label"] == 'CWW' :
+            if (u,v) in [(liste_pos_motif[0],liste_pos_motif[1]), (liste_pos_motif[0],liste_pos_motif[4]), (liste_pos_motif[1],liste_pos_motif[0]), (liste_pos_motif[1],liste_pos_motif[3]), (liste_pos_motif[1],liste_pos_motif[4]), (liste_pos_motif[1],liste_pos_motif[0]), (liste_pos_motif[2],liste_pos_motif[3]), (liste_pos_motif[3],liste_pos_motif[2]), (liste_pos_motif[4],liste_pos_motif[0]), (liste_pos_motif[4],liste_pos_motif[1])] :
+                color = 'red'
+            elif data["label"] == 'CWW' :
                 color = 'blue'
             else :
                 color = 'black'
@@ -136,10 +138,10 @@ def draw_structure(G, liste_pos_motif, num, rep, nom_fichier_coord):
                                         G.nodes[pred]["coordonnees"] = (coordonnees_noeud[0]-0.75, coordonnees_noeud[1])
                                     elif (coordonnees_noeud[0]+0.75, coordonnees_noeud[1]) not in coordonnees :
                                         G.nodes[pred]["coordonnees"] = (coordonnees_noeud[0]+0.75, coordonnees_noeud[1])
-                                    elif (coordonnees_noeud[0], coordonnees_noeud[1]+0.75) not in coordonnees :
-                                        G.nodes[pred]["coordonnees"] = (coordonnees_noeud[0], coordonnees_noeud[1]+0.75)
                                     elif (coordonnees_noeud[0], coordonnees_noeud[1]-0.75) not in coordonnees :
                                         G.nodes[pred]["coordonnees"] = (coordonnees_noeud[0], coordonnees_noeud[1]-0.75)
+                                    elif (coordonnees_noeud[0], coordonnees_noeud[1]+0.75) not in coordonnees :
+                                        G.nodes[pred]["coordonnees"] = (coordonnees_noeud[0], coordonnees_noeud[1]+0.75)
                                     elif (coordonnees_noeud[0]+0.25, coordonnees_noeud[1]+0.25) not in coordonnees:
                                         G.nodes[pred]["coordonnees"] = (coordonnees_noeud[0]+0.25, coordonnees_noeud[1]+0.25)
                                     elif (coordonnees_noeud[0]-0.25, coordonnees_noeud[1]) not in coordonnees: 
@@ -224,10 +226,10 @@ def draw_structure(G, liste_pos_motif, num, rep, nom_fichier_coord):
                                         G.nodes[succ]["coordonnees"] = (coordonnees_noeud[0]-0.75, coordonnees_noeud[1])
                                     elif (coordonnees_noeud[0]+0.75, coordonnees_noeud[1]) not in coordonnees :
                                         G.nodes[succ]["coordonnees"] = (coordonnees_noeud[0]+0.75, coordonnees_noeud[1])
-                                    elif (coordonnees_noeud[0], coordonnees_noeud[1]+0.75) not in coordonnees :
-                                        G.nodes[succ]["coordonnees"] = (coordonnees_noeud[0], coordonnees_noeud[1]+0.75)
                                     elif (coordonnees_noeud[0], coordonnees_noeud[1]-0.75) not in coordonnees :
                                         G.nodes[succ]["coordonnees"] = (coordonnees_noeud[0], coordonnees_noeud[1]-0.75)
+                                    elif (coordonnees_noeud[0], coordonnees_noeud[1]+0.75) not in coordonnees :
+                                        G.nodes[succ]["coordonnees"] = (coordonnees_noeud[0], coordonnees_noeud[1]+0.75)
                                     elif (coordonnees_noeud[0]+0.25, coordonnees_noeud[1]+0.25) not in coordonnees:
                                         G.nodes[succ]["coordonnees"] = (coordonnees_noeud[0]+0.25, coordonnees_noeud[1]+0.25)
                                     elif (coordonnees_noeud[0]-0.25, coordonnees_noeud[1]) not in coordonnees: 
@@ -361,18 +363,22 @@ def draw_structure(G, liste_pos_motif, num, rep, nom_fichier_coord):
     green_edges = []
     blue_edges = []
     black_edges = []
+    red_edges = []
     #black_edges = [edge for edge in G.edges() if edge not in red_edges]
     for u,v,edata, in G.edges(data=True) :
-            if edata["label"] == "B53" :
+            if (u,v) in [(liste_pos_motif[0],liste_pos_motif[1]), (liste_pos_motif[0],liste_pos_motif[4]), (liste_pos_motif[1],liste_pos_motif[0]), (liste_pos_motif[1],liste_pos_motif[3]), (liste_pos_motif[1],liste_pos_motif[4]), (liste_pos_motif[1],liste_pos_motif[0]), (liste_pos_motif[2],liste_pos_motif[3]), (liste_pos_motif[2], liste_pos_motif[0]), (liste_pos_motif[3],liste_pos_motif[2]), (liste_pos_motif[4],liste_pos_motif[0]), (liste_pos_motif[4],liste_pos_motif[1])] :
+                red_edges.append((u,v))
+            elif edata["label"] == "B53" :
                 green_edges.append((u,v))
             elif edata["label"] == "CWW" :
                 blue_edges.append((u,v)) 
+                print(u,v,edata)
             else :
                 black_edges.append((u,v))
 
-    edge_labels=dict([((u,v,),d["label"])for u,v,d in G.edges(data=True) if d["label"] != 'B53' and d["label"] != 'CWW' and ((u,v) not in courbes and (v,u) not in courbes)])
+    edge_labels=dict([((u,v,),d["motif"])for u,v,d in G.edges(data=True) if d["label"] != 'B53' and d["label"] != 'CWW' and ((u,v) not in courbes and (v,u) not in courbes)])
     #print(edge_labels)
-    node_labels=dict([(u,(d['nt']))for u,d in G.nodes(data=True)])## if d["type"] != None])
+    node_labels=dict([(u,(u, d["chaine"]))for u,d in G.nodes(data=True)])## if d["type"] != None])
     #node_labels=dict([(u, (u,d["type"], d["poids"])) if d["type"] != None else (u, (u)) for u,d in G.nodes(data=True) ])
     #node_labels=dict([(u, (u)) for u,d in G.nodes(data=True) ])
     #print(node_labels)
@@ -386,7 +392,7 @@ def draw_structure(G, liste_pos_motif, num, rep, nom_fichier_coord):
     #nx.draw_networkx_edges(G, pos, edgelist=green_edges, edge_color='g', edge_labels = edge_labels)
     #nx.draw_networkx_edges(G, pos, edgelist=black_edges, edge_labels = edge_labels)
     
-    edge_colors = ['black' if (u,v) in black_edges else 'blue' if (u,v) in blue_edges else 'green' for u,v in G.edges() if (u,v) not in courbes and (v,u) not in courbes]
+    edge_colors = ['black' if (u,v) in black_edges else 'blue' if (u,v) in blue_edges else 'green' if (u,v) in green_edges else 'red' for u,v in G.edges() if (u,v) not in courbes and (v,u) not in courbes]
 #         print(black_edges)
 #         print(red_edges)
 #         print(edge_colors)
@@ -401,11 +407,12 @@ def draw_structure(G, liste_pos_motif, num, rep, nom_fichier_coord):
     print("petit rat")
     plt.axis('off')
     
+    for u,v,data in G.edges(data=True) :
+        print(u,v,data)
     
-    
-    plt.savefig(rep+str(num)+".png") # save as png
+    #plt.savefig(rep+str(num)+".png") # save as png
     #plt.savefig("graphes_extension/fichier_1FJG_A_48_8.png") # save as png
-    #plt.show()
+    plt.show()
     plt.clf()
     plt.close()
     
@@ -415,7 +422,7 @@ if __name__ == '__main__':
         with open("fichiers_pickle/a-minor_test2.pickle", 'rb') as fichier_pickle :
             mon_depickler = pickle.Unpickler(fichier_pickle)
             tab_aminor = mon_depickler.load()
-            with open("grands_graphes_new_data_taille_%d.pickle"%i, 'rb') as fichier :
+            with open("grands_graphes_new_data_taille_%d_test.pickle"%i, 'rb') as fichier :
                 mon_depickler = pickle.Unpickler(fichier)
                 dico_graphes = mon_depickler.load()
                 #     
@@ -446,33 +453,31 @@ if __name__ == '__main__':
                 print(liste_tout)
                 
                 os.makedirs("Graphes_globaux/graphes_sequence/taille_%d_new_data"%i, exist_ok=True)
-                with open("all_aminor.pickle", 'rb') as fichier_pickle :
-                    mon_depickler = pickle.Unpickler(fichier_pickle)
-                    all_aminor = mon_depickler.load()
-                    
-                    liste_pb = []
-                    for cle in all_aminor.keys() :
-                        #print(cle)
-                        #if cle == "4ybb" :
-                            print("petit rat")
-                            with open("Graphs/%s.pickle"%cle, 'rb') as fichier_tout :
-                                mon_depickler_graphes = pickle.Unpickler(fichier_tout)
-                                graphe = mon_depickler_graphes.load()
-                                compter_graphe = 1
-                                for graph_motif in all_aminor[cle] :
-                                    if (cle, compter_graphe) in dico_graphes.keys() and (cle, compter_graphe) in liste_tout :
-                                        G = dico_graphes[(cle, compter_graphe)]
-                                        liste_pos_motif = []
-                                        for noeud, data in G[1].nodes(data=True) :
-                                            print(noeud)
-                                            liste_pos_motif.append((data["num_ch"], data["position"][0]))
-                                        
-                                        draw_structure(G[0], liste_pos_motif, cle+"_"+str(compter_graphe), "Graphes_globaux/graphes_sequence/taille_%d_new_data/"%i, "graphe_global_%s_%s_avec_coord.pickle"%(cle, compter_graphe))
-                                        
+
+                for elt in liste_tout :
+                    if elt in dico_graphes.keys() :
+                        if elt == ('4y4o', 2) :
+#                         ok = False
+#                         for noeud in dico_graphes[elt][0].nodes() :
+#                             liste_voisins = []
+#                             for voisin in dico_graphes[elt][0][noeud] :
+#                                 if voisin in liste_voisins :
+#                                     ok = True
+#                                 liste_voisins.append(voisin)
+#                         
+#                                     
+#                         if ok :
+                            G = dico_graphes[elt]
+                            liste_pos_motif = []
+                            for noeud, data in G[1].nodes(data=True) :
+                                print(noeud)
+                                liste_pos_motif.append((data["num_ch"], data["position"][0]))
+    #                                                 
+                            draw_structure(G[0], liste_pos_motif, elt[0]+"_"+str(elt[1]), "Graphes_globaux/graphes_sequence/taille_%d_new_data/"%i, "graphe_global_%s_%s_avec_coord_test.pickle"%(elt[0], elt[1]))
+                        #exit()                    
                                     
-                                    
-                                    compter_graphe+= 1
                                 
                                                     
-                    
+        
+            
                 

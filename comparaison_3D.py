@@ -208,6 +208,7 @@ def extract_pdb_new_data(tab_positions, rna, chains, graphe): #name = numPDB_cha
         print(nodes)
         real_nodes = []
         print(nodes)
+        print(len(nodes))
         p = re.compile('[-]*[0-9]*')
         for elt in nodes :
             m = p.match(elt)
@@ -228,14 +229,17 @@ def extract_pdb_new_data(tab_positions, rna, chains, graphe): #name = numPDB_cha
                     num_en_plus = elt[i:]   
                     
                     real_nodes.append((' ', int(num), num_en_plus))
+                    print(num_en_plus)
             else :
                 print("probleme5")
+                #exit()
             #real_nodes.append(int(num))
             
         
         print(mmcifd.get_residues())
         print(real_nodes)
-        
+        print(len(real_nodes))
+        #exit()
         
         #for mmcifd in mmcifds :
         for res in mmcif_ch.get_residues():
@@ -251,6 +255,7 @@ def extract_pdb_new_data(tab_positions, rna, chains, graphe): #name = numPDB_cha
                             atom.occupancy, atom.bfactor, atom.element)
                 l_atoms.append(string)
         compteur += 1
+    #exit()
     return '\n'.join(l_atoms)
 
 '''issu de github/charnley/rmsd'''
@@ -986,18 +991,18 @@ def rmsd_new_data(tab_fichiers, tab_fichier_positions, tab_motif_positions, tab_
         return super_imposer.rms 
   
     def get_rms_2(s1, s2, graph1, graph2, subgraph1, subgraph2, graphs1, graphs2, taille):
-        with open(PATH_MMCIF+"fichiers_problemes.txt", 'a') as fichier :
+        with open(PATH_MMCIF+"fichiers_problemes_%s_tout_motif.txt"%taille, 'a') as fichier :
             print(s1)
             print(s2)
             s1_rep = "/media/coline/Maxtor/Fichiers_mmcif/taille_%d/"%taille + s1
             s2_rep = "/media/coline/Maxtor/Fichiers_mmcif/taille_%d/"%taille  + s2
-            print(s1_rep)
-            print(s2)
+#             print(s1_rep)
+#             print(s2)
             
             ref_structure = pdb_parser.get_structure(s1_rep, s1_rep)
             sample_structure = pdb_parser.get_structure(s2_rep, s2_rep)
               
-            print(ref_structure)  
+#             print(ref_structure)  
               
             ref_model = ref_structure[0]
             sample_model = sample_structure[0]
@@ -1008,14 +1013,14 @@ def rmsd_new_data(tab_fichiers, tab_fichier_positions, tab_motif_positions, tab_
             ref_res = [res for chain in ref_model for res in chain]
             sample_res = [res for chain in sample_model for res in chain]
             
-            print(ref_res)
-            print(sample_res)
-            print(len(ref_res))
+#             print(ref_res)
+#             print(sample_res)
+#             print(len(ref_res))
             
             ##On commence par chercher a superposer les motifs seulement en minimisant la RMSD
             m = graphs_mapping(subgraph1, subgraph2)
             
-            print(m)
+#             print(m)
             
             for chain in ref_model :
                 num_chaine_ref = chain.id
@@ -1029,9 +1034,9 @@ def rmsd_new_data(tab_fichiers, tab_fichier_positions, tab_motif_positions, tab_
             #print cluster[CLASS-1]['names'][i], cluster[CLASS-1]['names'][j]
             
             print(len(ref_res))
-            print(ref_res)
+#             print(ref_res)
             print(len(sample_res))
-            print(sample_res)
+#             print(sample_res)
             
             
             if len(sample_res) != len(ref_res) :
@@ -1046,35 +1051,35 @@ def rmsd_new_data(tab_fichiers, tab_fichier_positions, tab_motif_positions, tab_
             ref_atoms = [] 
             sample_atoms = []
         
-            print(ref_res)
+#             print(ref_res)
             
             for res1 in ref_res:
                 pos1 =  str(res1.id[1])
-                print(pos1)
+#                 print(pos1)
                 if pos1 in m.keys() :
                     pos2 = m[pos1]
         #             print(pos2)
                     
                     res2 = [x for x in sample_res if str(x.id[1]) == pos2][0]
                     
-                    print("petit rat")
-                    print(res1)
+#                     print("petit rat")
+#                     print(res1)
                     
                     names_1 = [x.name for x in res1]
                     names_2 = [x.name for x in res2]
-                    print(names_1)
+#                     print(names_1)
                     
                     ref_atoms.extend([atom for atom in res1 if atom.name in names_2 and atom.name=="C3'"])
                     sample_atoms.extend([atom for atom in res2 if atom.name in names_1 and atom.name=="C3'"])
                 
                 
-            print(m)
+#             print(m)
             
     #         print(new_ref_res)
     #         print(new_sample_res)
-            print("gros rat")
-            print(ref_atoms)
-            print(sample_atoms)
+#             print("gros rat")
+#             print(ref_atoms)
+#             print(sample_atoms)
             
     #         print(len(ref_atoms))
     #         print(len(sample_atoms))
@@ -1085,28 +1090,28 @@ def rmsd_new_data(tab_fichiers, tab_fichier_positions, tab_motif_positions, tab_
     #         if (s2 == PATH_MMCIF[:len(PATH_MMCIF)-6]+'fichier_1U9S_A_58_11_2.pdb' and s1 == PATH_MMCIF[:len(PATH_MMCIF)-6]+'fichier_5J7L_DA_48_15_2.pdb') or (s1 == PATH_MMCIF[:len(PATH_MMCIF)-6]+'fichier_1U9S_A_58_11_2.pdb' and s2 == PATH_MMCIF[:len(PATH_MMCIF)-6]+'fichier_5J7L_DA_48_15_2.pdb'):
     #             print("gros rat /n /n /n /n")
     #             exit()
-            print("avant")
-            for atom in ref_atoms :
-                print(atom.get_vector())
-            for atom in sample_atoms :
-                print(atom.get_vector())   
+#             print("avant")
+#             for atom in ref_atoms :
+#                 print(atom.get_vector())
+#             for atom in sample_atoms :
+#                 print(atom.get_vector())   
             
     
             super_imposer = Bio.PDB.Superimposer()
             super_imposer.set_atoms(sample_atoms, ref_atoms)
             
-            print("apres")
-            for atom in ref_atoms :
-                print(atom.get_vector())
-            for atom in sample_atoms :
-                print(atom.get_vector())
+#             print("apres")
+#             for atom in ref_atoms :
+#                 print(atom.get_vector())
+#             for atom in sample_atoms :
+#                 print(atom.get_vector())
             #super_imposer.apply(ref_model.get_atoms())
             print(super_imposer.rms)
             print(len(ref_atoms))
             print(len(sample_atoms))
             print(super_imposer.rotran)
             
-            if taille == 1 :
+            if taille == 1 or taille == 0 :
 #                 sample_model_pymol = Bio.PDB.Model.Model(0)
 #                 ref_model_pymol = Bio.PDB.Model.Model(0)
 #                 sample_model_pymol.add(sample_res)
@@ -1225,7 +1230,7 @@ def rmsd_new_data(tab_fichiers, tab_fichier_positions, tab_motif_positions, tab_
                               
                             names_1 = [x.name for x in res1]
                             names_2 = [x.name for x in res2]
-                            print(names_1)
+#                             print(names_1)
                             
                             
                             res1_pymol = Bio.PDB.Residue.Residue((' ',compteur , ' '), res1.get_resname(), res1.get_segid())
@@ -1244,24 +1249,24 @@ def rmsd_new_data(tab_fichiers, tab_fichier_positions, tab_motif_positions, tab_
                             res2_pymol = Bio.PDB.Residue.Residue((' ',compteur , ' '), res2.get_resname(), res2.get_segid())
                             for atom in res2 :
                                 #if atom.name in names_1 :
-                                print(atom.get_vector())
+#                                 print(atom.get_vector())
                                 res2_pymol.add(atom)
                             #print(res2.id)
                             sample_res_pymol.add(res2_pymol) 
                             
                             compteur += 1
                             
-                            if pos1 in m_calcul.keys() :
-                                if m_calcul[pos1] != pos2 : ## pas meme superposition entre visualisation et calcul => probleme
-                                    print("probleme4")
-                                    print(m_pymol)
-                                    print(m_calcul)
-                                    print(m_pymol[pos1])
-                                    print(pos2)
-                                    exit()
-                                else :
-                                    ref_atoms_calcul.extend([atom for atom in res1 if atom.name in names_2 and atom.name=="C3'"])
-                                    sample_atoms_calcul.extend([atom for atom in res2 if atom.name in names_1 and atom.name=="C3'"])
+#                             if pos1 in m_calcul.keys() :
+#                                 if m_calcul[pos1] != pos2 : ## pas meme superposition entre visualisation et calcul => probleme
+#                                     print("probleme4")
+#                                     print(m_pymol)
+#                                     print(m_calcul)
+#                                     print(m_pymol[pos1])
+#                                     print(pos2)
+#                                     exit()
+#                                 else :
+                            ref_atoms_calcul.extend([atom for atom in res1 if atom.name in names_2 and atom.name=="C3'"])
+                            sample_atoms_calcul.extend([atom for atom in res2 if atom.name in names_1 and atom.name=="C3'"])
                         else :
                             fichier.write(str(s2_rep)+ " " + str(pos2) +"\n")
                 
@@ -1278,10 +1283,10 @@ def rmsd_new_data(tab_fichiers, tab_fichier_positions, tab_motif_positions, tab_
                 
                 #print(liste_atomes_ref)
                 
-                print("avant")
-                for res in ref_res_pymol :
-                    for atom in res :
-                        print(atom.get_vector())
+#                 print("avant")
+#                 for res in ref_res_pymol :
+#                     for atom in res :
+#                         print(atom.get_vector())
                         #break
                 
         #         new_new_ref_res = Bio.PDB.Chain.Chain(num_chaine_ref)
@@ -1295,15 +1300,15 @@ def rmsd_new_data(tab_fichiers, tab_fichier_positions, tab_motif_positions, tab_
         #             new_new_ref_res.add(new_res)       
                             
                             
-                print("avpres")
-                for res in ref_res_pymol :
-                    for atom in res :
-                        print(atom.get_vector())
+#                 print("avpres")
+#                 for res in ref_res_pymol :
+#                     for atom in res :
+#                         print(atom.get_vector())
                         #break
                         
-                for res in sample_res_pymol :
-                    for atom in res :
-                        print(atom.get_vector())
+#                 for res in sample_res_pymol :
+#                     for atom in res :
+#                         print(atom.get_vector())
                         #break
                             
         #         for res in new_sample_res :
@@ -1312,15 +1317,15 @@ def rmsd_new_data(tab_fichiers, tab_fichier_positions, tab_motif_positions, tab_
         #                 if atom.name in [x.name for x in res2] :
         #                     atom.transform(rotation, translation)  
                       
-                print(m)
-                print(ref_res_pymol)
-                print(sample_res_pymol)
-                print("gros rat")
-                print(ref_atoms)
-                print(sample_atoms)
-                for res in ref_res_pymol :
-                    print("ramou")
-                    print(res)
+#                 print(m)
+#                 print(ref_res_pymol)
+#                 print(sample_res_pymol)
+#                 print("gros rat")
+#                 print(ref_atoms)
+#                 print(sample_atoms)
+#                 for res in ref_res_pymol :
+#                     print("ramou")
+#                     print(res)
                     
                     
                 sample_model_pymol = Bio.PDB.Model.Model(0)
@@ -1335,14 +1340,16 @@ def rmsd_new_data(tab_fichiers, tab_fichier_positions, tab_motif_positions, tab_
         
                 io_sample = Bio.PDB.PDBIO()
                 io_sample.set_structure(structure_sample_pymol) 
-                io_sample.save(s2_rep[:len(s2_rep)-4]+"_aligned_with_"+s1[:len(s1)-4]+".pdb")
+                #io_sample.save(s2_rep[:len(s2_rep)-4]+"_aligned_with_"+s1[:len(s1)-4]+".pdb")
+                io_sample.save("/media/coline/Maxtor/Fichiers_mmcif/taille_%d_tout_motif/"%taille + s2[:len(s2)-4]+"_aligned_with_"+s1[:len(s1)-4]+".pdb")
                  
                 io_ref = Bio.PDB.PDBIO()
                 io_ref.set_structure(structure_ref_pymol) 
-                io_ref.save(s1_rep[:len(s1_rep)-4]+"_aligned_with_"+s2[:len(s2)-4]+".pdb")#   
-                
-                print(liste_atomes_ref)
-                print(liste_atomes_sample)
+                #io_ref.save(s1_rep[:len(s1_rep)-4]+"_aligned_with_"+s2[:len(s2)-4]+".pdb")#   
+                io_sample.save("/media/coline/Maxtor/Fichiers_mmcif/taille_%d_tout_motif/"%taille + s1[:len(s1)-4]+"_aligned_with_"+s2[:len(s2)-4]+".pdb")
+
+#                 print(liste_atomes_ref)
+#                 print(liste_atomes_sample)
         
         #         print(len(ref_atoms))
         #         print(len(sample_atoms))
@@ -1960,7 +1967,7 @@ def distrib_rmsd_new_data_par_cluster(num_ARN):
 
 
 if __name__ == '__main__':
-    types_arn = ["23S", "18S", "16S","Ribozyme", "Riboswitch", "SRP", "28S", "25S", "Intron", "arnt_16s_arnm", "arnt_16s"]
+    types_arn = ["23S", "18S", "16S","Ribozyme", "Riboswitch", "SRP", "28S", "25S", "Intron", "arnt_16S_arnm", "arnt_16S"]
 #     groupe = CLUSTERING_PEREZ_VERSION_NON_CAN_2[12]
 #     #groupe = ['5FDU_1A_30_17', '1U9S_A_58_11']
 #       
@@ -2015,7 +2022,33 @@ if __name__ == '__main__':
             
             
     ''' Version new data '''
-          
+    
+    with open(PATH_MMCIF+"fichiers_rmsd_taille_%d_que_carbone_3_new_data_new.pickle"%2, 'rb') as fichier_rmsd :
+        mon_depickler = pickle.Unpickler(fichier_rmsd)
+        rmsd_0 = mon_depickler.load()
+        
+    with open(PATH_MMCIF+"fichiers_rmsd_taille_%d_que_carbone_3_new_data_new_avec_motif.pickle"%2, 'rb') as fichier_rmsd :
+        mon_depickler = pickle.Unpickler(fichier_rmsd)
+        rmsd_4 = mon_depickler.load()
+        
+        distrib_rmsd_0 = []
+        distrib_rmsd_4 = []
+        for cle in rmsd_0.keys() : 
+            distrib_rmsd_0.append(rmsd_0[cle])
+            print(cle[0][:len(cle[0])-5] +  "2" + cle[0][len(cle[0])-4:])
+            #exit()
+            if (cle[0][:len(cle[0])-5] +  "2" + cle[0][len(cle[0])-4:], cle[1][:len(cle[1])-5] +  "2" + cle[1][len(cle[1])-4:]) in rmsd_4.keys() :
+                distrib_rmsd_4.append(rmsd_4[(cle[0][:len(cle[0])-5] +  "2" + cle[0][len(cle[0])-4:], cle[1][:len(cle[1])-5] +  "2" + cle[1][len(cle[1])-4:])])
+            else :
+                distrib_rmsd_4.append(rmsd_4[(cle[1][:len(cle[1])-5] +  "2" + cle[1][len(cle[1])-4:], cle[0][:len(cle[0])-5] +  "2" + cle[0][len(cle[0])-4:])])
+        axs = plt.gca()
+        plt.scatter(distrib_rmsd_0,distrib_rmsd_4)
+        axs.set_xlabel("RMSD taille 2")
+        axs.set_ylabel("RMSD taille 2+motif")
+        
+        plt.show()
+    #exit()
+    
     tab_fichiers = []
     tab_fichier_positions = []
     tab_motif_positions = []
@@ -2046,15 +2079,18 @@ if __name__ == '__main__':
 #      
 #      
     for i in range(4,5) :
+        os.makedirs("/media/coline/Maxtor/Fichiers_mmcif/taille_%s_tout_motif"%i, exist_ok=True)
         for elt in liste_a_garder :
-            if elt == ('1vq8', 11) :# or elt == ('4w2f', 40) :
-                with open(NEW_EXTENSION_PATH_TAILLE + "fichier_%s_%s.pickle"%(elt[0],elt[1]),'rb') as fichier_graphe :
+            #if elt == ('6gyv', 1) or elt == ('5nwy', 12) :
+                with open(NEW_EXTENSION_PATH_TAILLE + "fichier_%s_%s_2.pickle"%(elt[0],elt[1]),'rb') as fichier_graphe :
                         mon_depickler = pickle.Unpickler(fichier_graphe)
                         graphe = mon_depickler.load() 
+                        print(graphe.nodes.data())
                                   
                         with open("Graphs/"+elt[0]+".pickle", 'rb') as fichier_graphes :
                             mon_depickler_g  = pickle.Unpickler(fichier_graphes)
                             graphes = mon_depickler_g.load()
+                            #print(graphes.nodes[('BW', 37)])
                                   
                             motif, tab_positions, nb_nts_par_chaines = recup_motif_et_chaines_new_data(graphe, i, graphes.number_of_nodes(), graphes)
                                   
@@ -2066,7 +2102,7 @@ if __name__ == '__main__':
                             print(tab_positions)
                             print(elt)
                                 #print(graphes[(fichier.split("_")[1], fichier.split("_")[2])].nodes.data())
-                            if "fichier_"+elt[0]+"_"+str(elt[1])+"_taille_%d_test_.pdb"%i not in os.listdir("/media/coline/Maxtor/Fichiers_mmcif/"):
+                            if "fichier_"+elt[0]+"_"+str(elt[1])+"_taille_%d.pdb"%i not in os.listdir("/media/coline/Maxtor/Fichiers_mmcif/taille_%s/"%i):
                                            
                                 if elt in liste_plusieurs_chaines :
                                     chains = []
@@ -2078,17 +2114,17 @@ if __name__ == '__main__':
                                 res = extract_pdb_new_data(tab_positions, elt[0], chains , graphes)
                                 print(res)
                                                               
-                                with open("/media/coline/Maxtor/Fichiers_mmcif/fichier_%s_%s_taille_%d_test.pdb"%(elt[0], str(elt[1]),i), 'w') as fichier_pdb:
+                                with open("/media/coline/Maxtor/Fichiers_mmcif/taille_%s/fichier_%s_%s_taille_%d.pdb"%(i, elt[0], str(elt[1]),i), 'w') as fichier_pdb:
                                     fichier_pdb.write(res)
                                     print("gros rat")
                             tab_fichiers.append("fichier_"+elt[0]+"_"+str(elt[1])+"_taille_%d.pdb"%i)
-# # # #              
-        #rmsd = rmsd_new_data(tab_fichiers, tab_fichier_positions, tab_motif_positions, tab_nb_nts_par_chaine, graphes, i)
-#         #print(rmsd)
+                        #exit()
+        rmsd = rmsd_new_data(tab_fichiers, tab_fichier_positions, tab_motif_positions, tab_nb_nts_par_chaine, graphes, i)
+        #print(rmsd)
 # #                          
-#         with open(PATH_MMCIF+"fichiers_rmsd_taille_%d_que_carbone_3_new_data_new.pickle"%i, 'wb') as fichier_rmsd :
-#             mon_pickler = pickle.Pickler(fichier_rmsd)
-#             mon_pickler.dump(rmsd) 
+        with open(PATH_MMCIF+"fichiers_rmsd_taille_%d_que_carbone_3_new_data_new_avec_motif.pickle"%i, 'wb') as fichier_rmsd :
+            mon_pickler = pickle.Pickler(fichier_rmsd)
+            mon_pickler.dump(rmsd) 
 #          
 #     with open(PATH_MMCIF+"fichiers_rmsd_taille_%d_que_carbone_1_new_data.pickle"%4, 'rb') as fichier_rmsd :
 #             mon_depickler = pickle.Unpickler(fichier_rmsd)

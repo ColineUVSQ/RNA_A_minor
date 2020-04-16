@@ -43,18 +43,31 @@ def draw_extension(nom_fichier):
     element = nom_fichier
                 #with open(EXTENSION_PATH_TAILLE%j+element, 'rb') as fichier_entree :
     with open(NEW_EXTENSION_PATH_TAILLE+"%s"%(element), 'rb') as fichier_entree :
+       
                             print(element)
-                            
+                               
+                            j = 1
                             mon_depickler = pickle.Unpickler(fichier_entree)
                             G = mon_depickler.load()
+#     with open("dico_graphes_sans_liaison_near.pickle", 'rb') as fichier_entree :
+#                     mon_depickler_graphes = pickle.Unpickler(fichier_entree)
+#                     dico_graphes = mon_depickler_graphes.load()
+#                     for elt in dico_graphes.keys() :
+#                         print(elt)
+#                         print(element)
+#                         print(elt == element)
+#                         if elt ==  ('3mum', 1):
+#                             G = dico_graphes[elt]
                             print(G.nodes.data())
+                            print(G.edges.data())
+        
                             
                             nx.set_node_attributes(G, (33,33), "coordonnees")
-                            G.nodes[1]["coordonnees"] = (0.0,0.5)
-                            G.nodes[2]["coordonnees"] = (2.0,0.5)
+                            G.nodes[1]["coordonnees"] = (0.0,0.5*j)
+                            G.nodes[2]["coordonnees"] = (2.0*j,0.5*j)
                             G.nodes[3]["coordonnees"] = (0.0,0.0)
-                            G.nodes[4]["coordonnees"] = (2.0,0.0)
-                            G.nodes[5]["coordonnees"] = (3.0,0.5)
+                            G.nodes[4]["coordonnees"] = (2.0*j,0.0)
+                            G.nodes[5]["coordonnees"] = (3.0*j,0.5*j)
                              
             #                 fichier.write(str(element)+"\n") 
             #                 fichier.write(str(G.number_of_nodes())+"\n") 
@@ -65,7 +78,7 @@ def draw_extension(nom_fichier):
                                     print("ramou")
                                     print(noeud)
                             
-                            nodes_list = [u for u,d in G.nodes(data=True) if d["type"] != -1] 
+                            nodes_list = [u for u,d in G.nodes(data=True) ]#if d["type"] != -1] 
                             print(nodes_list)
                             ordre_noeuds = [1,2,3,4,5]
                             
@@ -114,35 +127,35 @@ def draw_extension(nom_fichier):
                                             coordonnees.append(G.nodes[node]["coordonnees"])
                                         for edge in G[pred][noeud] :
                                             if G[pred][noeud][edge]["label"] == "B53" :
-                                                if (coordonnees_noeud[0], coordonnees_noeud[1]-0.5) not in coordonnees :
-                                                    G.nodes[pred]["coordonnees"] = (coordonnees_noeud[0], coordonnees_noeud[1]-0.5)
-                                                elif (coordonnees_noeud[0], coordonnees_noeud[1]+0.5) not in coordonnees :
-                                                    G.nodes[pred]["coordonnees"] = (coordonnees_noeud[0], coordonnees_noeud[1]+0.5)
-                                                elif (coordonnees_noeud[0]-0.5, coordonnees_noeud[1]) not in coordonnees :
-                                                    G.nodes[pred]["coordonnees"] = (coordonnees_noeud[0]-0.5, coordonnees_noeud[1])
-                                                elif (coordonnees_noeud[0]+0.5, coordonnees_noeud[1]) not in coordonnees :
-                                                    G.nodes[pred]["coordonnees"] = (coordonnees_noeud[0]+0.5, coordonnees_noeud[1])
-                                                elif (coordonnees_noeud[0]+0.25, coordonnees_noeud[1]+0.25) not in coordonnees:
-                                                    G.nodes[pred]["coordonnees"] = (coordonnees_noeud[0]+0.25, coordonnees_noeud[1]+0.25)
-                                                elif (coordonnees_noeud[0]-0.25, coordonnees_noeud[1]) not in coordonnees: 
-                                                    G.nodes[pred]["coordonnees"] = (coordonnees_noeud[0]-0.25, coordonnees_noeud[1])
+                                                if (coordonnees_noeud[0], coordonnees_noeud[1]-0.5*j) not in coordonnees :
+                                                    G.nodes[pred]["coordonnees"] = (coordonnees_noeud[0], coordonnees_noeud[1]-0.5*j)
+                                                elif (coordonnees_noeud[0], coordonnees_noeud[1]+0.5*j) not in coordonnees :
+                                                    G.nodes[pred]["coordonnees"] = (coordonnees_noeud[0], coordonnees_noeud[1]+0.5*j)
+                                                elif (coordonnees_noeud[0]-0.5*j, coordonnees_noeud[1]) not in coordonnees :
+                                                    G.nodes[pred]["coordonnees"] = (coordonnees_noeud[0]-0.5*j, coordonnees_noeud[1])
+                                                elif (coordonnees_noeud[0]+0.5*j, coordonnees_noeud[1]) not in coordonnees :
+                                                    G.nodes[pred]["coordonnees"] = (coordonnees_noeud[0]+0.5*j, coordonnees_noeud[1])
+                                                elif (coordonnees_noeud[0]+0.25*j, coordonnees_noeud[1]+0.25*j) not in coordonnees:
+                                                    G.nodes[pred]["coordonnees"] = (coordonnees_noeud[0]+0.25*j, coordonnees_noeud[1]+0.25*j)
+                                                elif (coordonnees_noeud[0]-0.25*j, coordonnees_noeud[1]) not in coordonnees: 
+                                                    G.nodes[pred]["coordonnees"] = (coordonnees_noeud[0]-0.25*j, coordonnees_noeud[1])
                                                 else :
                                                     #fichier.write("probleme\n")
                                                     print("probleme")
-                                            #else :
-                                            elif G.nodes[pred]["type"] != -1 :
-                                                if (coordonnees_noeud[0]-0.75, coordonnees_noeud[1]) not in coordonnees :
-                                                    G.nodes[pred]["coordonnees"] = (coordonnees_noeud[0]-0.75, coordonnees_noeud[1])
-                                                elif (coordonnees_noeud[0]+0.75, coordonnees_noeud[1]) not in coordonnees :
-                                                    G.nodes[pred]["coordonnees"] = (coordonnees_noeud[0]+0.75, coordonnees_noeud[1])
-                                                elif (coordonnees_noeud[0], coordonnees_noeud[1]-0.75) not in coordonnees :
-                                                    G.nodes[pred]["coordonnees"] = (coordonnees_noeud[0], coordonnees_noeud[1]-0.75)
-                                                elif (coordonnees_noeud[0], coordonnees_noeud[1]+0.75) not in coordonnees :
-                                                    G.nodes[pred]["coordonnees"] = (coordonnees_noeud[0], coordonnees_noeud[1]+0.75)
-                                                elif (coordonnees_noeud[0]+0.25, coordonnees_noeud[1]+0.25) not in coordonnees:
-                                                    G.nodes[pred]["coordonnees"] = (coordonnees_noeud[0]+0.25, coordonnees_noeud[1]+0.25)
-                                                elif (coordonnees_noeud[0]-0.25, coordonnees_noeud[1]) not in coordonnees: 
-                                                    G.nodes[pred]["coordonnees"] = (coordonnees_noeud[0]-0.25, coordonnees_noeud[1])
+                                            else :
+                                            #elif G.nodes[pred]["type"] != -1 :
+                                                if (coordonnees_noeud[0]-0.75*j, coordonnees_noeud[1]) not in coordonnees :
+                                                    G.nodes[pred]["coordonnees"] = (coordonnees_noeud[0]-0.75*j, coordonnees_noeud[1])
+                                                elif (coordonnees_noeud[0]+0.75*j, coordonnees_noeud[1]) not in coordonnees :
+                                                    G.nodes[pred]["coordonnees"] = (coordonnees_noeud[0]+0.75*j, coordonnees_noeud[1])
+                                                elif (coordonnees_noeud[0], coordonnees_noeud[1]-0.75*j) not in coordonnees :
+                                                    G.nodes[pred]["coordonnees"] = (coordonnees_noeud[0], coordonnees_noeud[1]-0.75*j)
+                                                elif (coordonnees_noeud[0], coordonnees_noeud[1]+0.75*j) not in coordonnees :
+                                                    G.nodes[pred]["coordonnees"] = (coordonnees_noeud[0], coordonnees_noeud[1]+0.75*j)
+                                                elif (coordonnees_noeud[0]+0.25*j, coordonnees_noeud[1]+0.25*j) not in coordonnees:
+                                                    G.nodes[pred]["coordonnees"] = (coordonnees_noeud[0]+0.25*j, coordonnees_noeud[1]+0.25*j)
+                                                elif (coordonnees_noeud[0]-0.25*j, coordonnees_noeud[1]) not in coordonnees: 
+                                                    G.nodes[pred]["coordonnees"] = (coordonnees_noeud[0]-0.25*j, coordonnees_noeud[1])
                                                 else : 
                                                     #fichier.write("probleme\n")
                                                     print("probleme") 
@@ -152,41 +165,45 @@ def draw_extension(nom_fichier):
                                         for node in G.nodes() :
                                             coordonnees.append(G.nodes[node]["coordonnees"])
                                         for edge in G[noeud][succ] :
+                                            
+
                                             if G[noeud][succ][edge]["label"] == "B53" :
-                                                if (coordonnees_noeud[0], coordonnees_noeud[1]-0.5) not in coordonnees :
-                                                    G.nodes[succ]["coordonnees"] = (coordonnees_noeud[0], coordonnees_noeud[1]-0.5)
-                                                elif (coordonnees_noeud[0], coordonnees_noeud[1]+0.5) not in coordonnees :
-                                                    G.nodes[succ]["coordonnees"] = (coordonnees_noeud[0], coordonnees_noeud[1]+0.5)
-                                                elif (coordonnees_noeud[0]-0.5, coordonnees_noeud[1]) not in coordonnees :
-                                                    G.nodes[succ]["coordonnees"] = (coordonnees_noeud[0]-0.5, coordonnees_noeud[1])
-                                                elif (coordonnees_noeud[0]+0.5, coordonnees_noeud[1]) not in coordonnees :
-                                                    G.nodes[succ]["coordonnees"] = (coordonnees_noeud[0]+0.5, coordonnees_noeud[1])
-                                                elif (coordonnees_noeud[0]+0.25, coordonnees_noeud[1]+0.25) not in coordonnees:
-                                                    G.nodes[succ]["coordonnees"] = (coordonnees_noeud[0]+0.25, coordonnees_noeud[1]+0.25)
-                                                elif (coordonnees_noeud[0]-0.25, coordonnees_noeud[1]) not in coordonnees: 
-                                                    G.nodes[succ]["coordonnees"] = (coordonnees_noeud[0]-0.25, coordonnees_noeud[1])
+                                                if (coordonnees_noeud[0], coordonnees_noeud[1]-0.5*j) not in coordonnees :
+                                                    G.nodes[succ]["coordonnees"] = (coordonnees_noeud[0], coordonnees_noeud[1]-0.5*j)
+                                                elif (coordonnees_noeud[0], coordonnees_noeud[1]+0.5*j) not in coordonnees :
+                                                    G.nodes[succ]["coordonnees"] = (coordonnees_noeud[0], coordonnees_noeud[1]+0.5*j)
+                                                elif (coordonnees_noeud[0]-0.5*j, coordonnees_noeud[1]) not in coordonnees :
+                                                    G.nodes[succ]["coordonnees"] = (coordonnees_noeud[0]-0.5*j, coordonnees_noeud[1])
+                                                elif (coordonnees_noeud[0]+0.5*j, coordonnees_noeud[1]) not in coordonnees :
+                                                    G.nodes[succ]["coordonnees"] = (coordonnees_noeud[0]+0.5*j, coordonnees_noeud[1])
+                                                elif (coordonnees_noeud[0]+0.25*j, coordonnees_noeud[1]+0.25*j) not in coordonnees:
+                                                    G.nodes[succ]["coordonnees"] = (coordonnees_noeud[0]+0.25*j, coordonnees_noeud[1]+0.25*j)
+                                                elif (coordonnees_noeud[0]-0.25*j, coordonnees_noeud[1]) not in coordonnees: 
+                                                    G.nodes[succ]["coordonnees"] = (coordonnees_noeud[0]-0.25*j, coordonnees_noeud[1])
                                                 else :
                                                     #fichier.write("probleme\n")
                                                     print("probleme")
-                                            #else : 
-                                            elif G.nodes[succ]["type"] != -1 :
-                                                if (coordonnees_noeud[0]-0.75, coordonnees_noeud[1]) not in coordonnees :
-                                                    G.nodes[succ]["coordonnees"] = (coordonnees_noeud[0]-0.75, coordonnees_noeud[1])
-                                                elif (coordonnees_noeud[0]+0.75, coordonnees_noeud[1]) not in coordonnees :
-                                                    G.nodes[succ]["coordonnees"] = (coordonnees_noeud[0]+0.75, coordonnees_noeud[1])
-                                                elif (coordonnees_noeud[0], coordonnees_noeud[1]-0.75) not in coordonnees :
-                                                    G.nodes[succ]["coordonnees"] = (coordonnees_noeud[0], coordonnees_noeud[1]-0.75)
-                                                elif (coordonnees_noeud[0], coordonnees_noeud[1]+0.75) not in coordonnees :
-                                                    G.nodes[succ]["coordonnees"] = (coordonnees_noeud[0], coordonnees_noeud[1]+0.75)
-                                                elif (coordonnees_noeud[0]+0.25, coordonnees_noeud[1]+0.25) not in coordonnees:
-                                                    G.nodes[succ]["coordonnees"] = (coordonnees_noeud[0]+0.25, coordonnees_noeud[1]+0.25)
-                                                elif (coordonnees_noeud[0]-0.25, coordonnees_noeud[1]) not in coordonnees: 
-                                                    G.nodes[succ]["coordonnees"] = (coordonnees_noeud[0]-0.25, coordonnees_noeud[1])
+                                            else : 
+                                            #elif G.nodes[succ]["type"] != -1 :
+                                                if (coordonnees_noeud[0]-0.75*j, coordonnees_noeud[1]) not in coordonnees :
+                                                    G.nodes[succ]["coordonnees"] = (coordonnees_noeud[0]-0.75*j, coordonnees_noeud[1])
+                                                elif (coordonnees_noeud[0]+0.75*j, coordonnees_noeud[1]) not in coordonnees :
+                                                    G.nodes[succ]["coordonnees"] = (coordonnees_noeud[0]+0.75*j, coordonnees_noeud[1])
+                                                elif (coordonnees_noeud[0], coordonnees_noeud[1]-0.75*j) not in coordonnees :
+                                                    G.nodes[succ]["coordonnees"] = (coordonnees_noeud[0], coordonnees_noeud[1]-0.75*j)
+                                                elif (coordonnees_noeud[0], coordonnees_noeud[1]+0.75*j) not in coordonnees :
+                                                    G.nodes[succ]["coordonnees"] = (coordonnees_noeud[0], coordonnees_noeud[1]+0.75*j)
+                                                elif (coordonnees_noeud[0]+0.25*j, coordonnees_noeud[1]+0.25*j) not in coordonnees:
+                                                    G.nodes[succ]["coordonnees"] = (coordonnees_noeud[0]+0.25*j, coordonnees_noeud[1]+0.25*j)
+                                                elif (coordonnees_noeud[0]-0.25*j, coordonnees_noeud[1]) not in coordonnees: 
+                                                    G.nodes[succ]["coordonnees"] = (coordonnees_noeud[0]-0.25*j, coordonnees_noeud[1])
                                                 else : 
                                                     #fichier.write("probleme\n")
                                                     print("probleme") 
                                                 
-            #                 
+                                            if succ == 25 : 
+                                                print("ratpoulou\n")
+                                                print(G.nodes[succ]["coordonnees"])
             #                 for noeud in G.nodes() :
             #                     fichier.write(str(noeud) + " " + str(G.nodes[noeud])+"\n")
             #                 for u,v,edata in G.edges(data=True) :
@@ -200,7 +217,9 @@ def draw_extension(nom_fichier):
                                 mon_pickler.dump(G)
                                         
                             pos = get_node_attributes(G, 'coordonnees')
-                            
+                            pos_below = {}
+                            for k, v in pos.items():
+                                pos_below[k] = (v[0], v[1]-0.1)
                                 
                             
                             print(pos)
@@ -219,6 +238,8 @@ def draw_extension(nom_fichier):
                             green_edges = []
                             blue_edges = []
                             black_edges = []
+                            grey_edges = []
+                            orange_edges = []
                             weights = []
                             
                             edges_list = [(u,v) for u,v,data in G.edges(data=True) if data["near"] != None]
@@ -228,10 +249,15 @@ def draw_extension(nom_fichier):
                                 if (u,v) in edges_list : 
                                     if u in nodes_list and v in nodes_list :
                                         if (u,v) not in red_edges :
+                                            #if ((1 in G.nodes[u]["chaine"] or 3 in G.nodes[u]["chaine"]) and (1 in G.nodes[v]["chaine"] or 3 in G.nodes[v]["chaine"])) :#or (u in [14,15,16] and v in [14,15,16]):
+                                            #    orange_edges.append((u,v))
                                             if edata["label"] == "B53" :
                                                 green_edges.append((u,v))
                                             elif edata["label"] == "CWW" :
                                                 blue_edges.append((u,v)) 
+                                            elif edata["label"] == '0' or edata["near"] == True :
+                                                grey_edges.append((u,v))
+                                        
                                             else :
                                                 black_edges.append((u,v))
                             
@@ -241,11 +267,11 @@ def draw_extension(nom_fichier):
         #                         else :
         #                             weights.append(1)
             
-                            edge_labels=dict([((u,v,),d["label"])for u,v,d in G.edges(data=True)])
+                            edge_labels=dict([((u,v,),d["label"])for u,v,d in G.edges(data=True) if d["label"] not in ['B53','CWW', '0'] and (u,v) not in red_edges])
                             #print(edge_labels)
                            # node_labels=dict([(u,(d["nt"], d["type"]))for u,d in G.nodes(data=True)])## if d["type"] != None])
                             
-                            node_labels=dict([(u, (d["type"], d["poids"])) for u,d in G.nodes(data=True) if d["type"] != -1 and d["type"] != None]) #else (u, (u)) for u,d in G.nodes(data=True) ])
+                            node_labels=dict([(u, (u,d["type"], d["poids"], d["chaine"])) for u,d in G.nodes(data=True) if d["type"] != -1 and d["type"] != None]) #else (u, (u)) for u,d in G.nodes(data=True) ])
                             #node_labels=dict([(u, (u)) for u,d in G.nodes(data=True) ])
                             print(node_labels)
                             
@@ -256,16 +282,16 @@ def draw_extension(nom_fichier):
         #                             orange_nodes.append(noeud)
         #                         else :
         #                             pink_nodes.append(noeud)
-        #                     node_colors = ['pink' if node in pink_nodes else 'orange' for node in nodes_list]
+                            node_colors = ['orange' if  (1 in G.nodes[node]["chaine"] or 3 in G.nodes[node]["chaine"]) and node not in [1,2,3,4,5] else 'pink' for node in nodes_list]
                             #edge_labels = dict([((u,v,), (d["label"])) for u,v,d in G.edges(data=True) if (u,v) in edges_list]) #else (u, (u)) for u,d in G.nodes(data=True) ])
          #dict([((u,v,),d["label"])for u,v,d in G.edges(data=True) if d["label"] != 'B53' and d["label"] != 'CWW' and ((u,v) not in courbes and (v,u) not in courbes)])
            
                             
-                            nx.draw_networkx_nodes(G, pos, nodelist=nodes_list, node_size=150, node_color="pink")
-                            nx.draw_networkx_labels(G, pos, labels = node_labels, fontsize=8)
-    
+                            nx.draw_networkx_nodes(G, pos, nodelist=nodes_list, node_size=400, node_color="pink")
+                            nx.draw_networkx_labels(G, pos, labels = node_labels, font_size=11)
+                            
                             #edges_list = [(u,v) for u,v,data in G.edges(data=True) if data["long_range"] != None]
-                            edge_colors = ['black' if edge in black_edges else 'red' if edge in red_edges else 'blue' if edge in blue_edges else 'green' for edge in edges_list]
+                            edge_colors = ['black' if edge in black_edges else 'red' if edge in red_edges else 'blue' if edge in blue_edges else 'grey' if edge in grey_edges else 'orange' if edge in orange_edges else 'green' for edge in edges_list]
                             print(black_edges)
                             print(red_edges)
                             print(edge_colors)
@@ -274,10 +300,10 @@ def draw_extension(nom_fichier):
                             print(len(weights))
         #                     print(len(edges_list))
         #                     print(commun.edges.data())
-                            #nx.draw_networkx_edge_labels(G,pos, edge_labels = edge_labels, font_size=8)
-                            nx.draw_networkx_edges(G,pos, edgelist = edges_list, edge_color=edge_colors)#, width=weights)
+                            nx.draw_networkx_edge_labels(G,pos, edge_labels = edge_labels, font_size=7)
+                            nx.draw_networkx_edges(G,pos, edgelist = edges_list, edge_color=edge_colors, width = 2)#, width=weights)
                             plt.axis('off')
-                            plt.savefig(NEW_EXTENSION_PATH_TAILLE+ "%s.png"%(element[:len(element)-7]), format="png") #transparent=True, dpi=50) # save as png
+                            #plt.savefig(NEW_EXTENSION_PATH_TAILLE+ "%s.png"%(element[:len(element)-7]), format="png") #transparent=True, dpi=50) # save as png
                             #plt.savefig("Extensions/Metrique_toutes_aretes/graphes_extension_autres_tailles/motif_taille_4_0.8_6/graphe_motif_moyen.png") # save as png
                             
                             #plt.savefig("graphes_extension/fichier_1FJG_A_48_8.svg", format='svg') # save as png
@@ -287,5 +313,9 @@ def draw_extension(nom_fichier):
 
                 
 if __name__ == '__main__':
-    draw_extension("fichier_4y4o_25_2.pickle")
+    #liste = [('1vq8', 22), ('4ybb', 24), ('4y4o', 50), ('5dm6', 11), ('3cc2', 12), ('5ngm', 8), ('5wfs', 6), ('6eri', 24), ('6hrm', 4), ('4faw', 2), ('4y1n', 1)]
+    #liste = [('4v67', 7), ('4w2g', 52), ('2zjr', 3), ('4ybb', 12), ('4u27', 54), ('6ek0', 10), ('6eri', 14), ('4y4o', 38)]
+    liste = [('5dm6', 2)]
+    for elt in liste :
+        draw_extension("fichier_%s_%s_2.pickle"%(elt[0], elt[1])) 
     

@@ -377,7 +377,8 @@ def calcul_aretes_communes_avec_coeff(graphe_commun, graphe1, graphe2, cle, coef
                     if coeffc == 1 :
                         somme_aretes += min(graphe1.nodes[u[0]]["poids"], graphe2.nodes[u[1]]["poids"]) 
                 else :
-                    somme_aretes += min(graphe1.nodes[u[0]]["poids"], graphe2.nodes[u[1]]["poids"]) 
+                    if coeffn == 1 :
+                        somme_aretes += min(graphe1.nodes[u[0]]["poids"], graphe2.nodes[u[1]]["poids"]) 
                 liste_aretes.append((u,v))
     
     return somme_aretes/2 - 4
