@@ -1472,10 +1472,13 @@ def reetiquetage(graphe, chaines, chaines_a_mettre_ensemble):
             composantes.update({tuple(ch) :liste_chaines})
         else :
             for noeud in chaines[ch[0]-1] : 
+                print("roupoulou")
+                print(noeud)
                 graphe.nodes[noeud]["num_composante"] = list(ch)
                 for voisin in graphe[noeud] :
                     if graphe.nodes[voisin]["num_composante"] == -1 :
                         graphe.nodes[voisin]["num_composante"] = list(ch)
+                print(graphe.nodes[noeud]["num_composante"])
             composantes.update({tuple(ch) :chaines[ch[0]-1]})      
     return composantes
 
@@ -1483,7 +1486,7 @@ def maximum_voisin_non_cov(liste_noeuds, graphe):
     maxi = -1
     noeud_maxi = -1
     for noeud in liste_noeuds :
-        if graphe.nodes[noeud]["marque"] == 0 :
+        if graphe.nodes[noeud]["marque"] in [0, -1] :
             if graphe.nodes[noeud]["nb_vnc"] > maxi :
                 maxi = graphe.nodes[noeud]["nb_vnc"]
                 noeud_maxi = noeud
@@ -1557,10 +1560,11 @@ def dans_liste(liste_superposes, noeud1, noeud2):
 def recup_sommets_possibles(noeud1, graphe1, dico_chaines_1, comp_2):
     sommets_possibles = []
     #print(comp_2)
-    for elt in dico_chaines_1[graphe1.nodes[noeud1]["chaine"][0]-1][noeud1] :
-        #print(elt)
-        if elt in comp_2 :
-            sommets_possibles.append(elt)
+    if noeud1 != 5 :
+        for elt in dico_chaines_1[graphe1.nodes[noeud1]["chaine"][0]-1][noeud1] :
+            #print(elt)
+            if elt in comp_2 :
+                sommets_possibles.append(elt)
             
     return sommets_possibles
             
@@ -1647,13 +1651,14 @@ def new_heuristique(graphe1_deb, graphe2_deb):
         comp2_max = -1
         liste_superposes_a_garder = [] 
         liste_superposes_a_garder_ar = []
+        print("hi")
         
         noeud_maxi = maximum_voisin_non_cov(composantes_1[comp1], graphe1_deb)  ## recherche du noeud qui a le plus grand nombre de voisins non covalents dans comp1
         if noeud_maxi == -1 and len(composantes_1[comp1]) > 0 : ## cas ou on ne trouve pas de noeud_maxi alors que la composante n'est pas vide
             print("pas de noeud max !!")
-            exit()
+            #exit()
 
-        if noeud_maxi != -1 :
+        if noeud_maxi != -1 :#and graphe1.nodes[noeud_maxi]["marque"] in [0, -1]:
 #             print("raaaapaaaalaaaa")
 #             print(noeud_maxi)
             #sommets_possibles = dico_chaines_1[graphe1.nodes[noeud_maxi]["chaine"][0]-1][noeud_maxi] ## on recupere l'ensemble des noeuds du graphe2 compatibles avec noeud_maxi
@@ -1703,9 +1708,9 @@ def new_heuristique(graphe1_deb, graphe2_deb):
                                 noeud1 = liste_superposes_temp[compteur][0]
                                 noeud2 = liste_superposes_temp[compteur][1]
                                 
-#                                 print("sommets")
-#                                 print(noeud1)
-#                                 print(noeud2)
+                                print("sommets")
+                                print(noeud1)
+                                print(noeud2)
                                 
                                 ## pas besoin de chercher les voisins pour les noeuds de type artificiel, ils n'en ont qu'un normalement
                                 if graphe1.nodes[noeud1]["type"] != -1 :
@@ -1761,8 +1766,8 @@ def new_heuristique(graphe1_deb, graphe2_deb):
                                                 compteur_v += 1
                                             dico_labels[cle] = [dico_labels[cle][meilleur_voisin]]
                                     
-#                                     print("patata")
-#                                     print(dico_labels)
+                                    print("patata")
+                                    print(dico_labels)
                                     nb_voisins_trouves = 0
                                     
                                     for cle in dico_labels.keys() :
@@ -1796,34 +1801,62 @@ def new_heuristique(graphe1_deb, graphe2_deb):
                                             - ne pas introduire d'incompatibilite de sequence ni dans le sous-graphe commun temporaire, ni dans le sous-graphe commun final
                                             et de plus, il faut que les aretes entre le noeud et son voisin soient de même type
                                             '''
-#                                             print(graphe1.nodes[voisin_1]["marque"])
-#                                             print(graphe2.nodes[voisin_2]["marque"])
-#                                             print((voisin_1, voisin_2) not in liste_deja_teste)
+                                            print("voisins")
+                                            print(voisin_1)
+                                            print(voisin_2)
+                                            print(graphe1.nodes[voisin_1]["marque"])
+                                            print(graphe2.nodes[voisin_2]["marque"])
+                                            print((voisin_1, voisin_2) not in liste_deja_teste)
+                                            print(liste_superposes_temp[:compteur])
+                                            print((voisin_1, voisin_2) not in liste_superposes_temp[:compteur])
+                                            print(meme_type_meme_chaine(voisin_1, voisin_2, graphe1, graphe2))
+                                            print(not dans_liste(liste_superposes_temp, voisin_1, voisin_2))
+                                            print(test_compatibilite_new(voisin_1, voisin_2, graphe1_deb, graphe2_deb, liste_superposes))
+                                            print(test_compatibilite_new(voisin_1, voisin_2, graphe1_deb, graphe2_deb, liste_superposes_temp))
+
                                             if graphe1.nodes[voisin_1]["marque"] in [0, voisin_2] and graphe2.nodes[voisin_2]["marque"] in [0, voisin_1] and (voisin_1, voisin_2) not in liste_superposes_temp[:compteur] and (voisin_1, voisin_2) not in liste_deja_teste and meme_type_meme_chaine(voisin_1, voisin_2, graphe1, graphe2) and not dans_liste(liste_superposes_temp, voisin_1, voisin_2) and test_compatibilite_new(voisin_1, voisin_2, graphe1_deb, graphe2_deb, liste_superposes) and test_compatibilite_new(voisin_1, voisin_2, graphe1_deb, graphe2_deb, liste_superposes_temp) :
     #                                           
-#                                                 print("tadaa")
+                                                print("tadaa")
+#                                                 print(voisin_1)
+#                                                 print(voisin_2)
                                                 ## cas des aretes ou des arcs orientes dans le sens noeud vers voisin
                                                 if (noeud1, voisin_1) in graphe1.edges() and (noeud2, voisin_2) in graphe2.edges() :
+                                                                    print("ripili")
 #                                                     for edge_1 in graphe1[noeud1][voisin_1] :
 #                                                         for edge_2 in graphe2[noeud2][voisin_2] :
                                                                     label1 = graphe1[noeud1][voisin_1][edge_1]["label"]
                                                                     label2 = graphe2[noeud2][voisin_2][edge_2]["label"]
-#                                                                 
+                                                                    print(label1)
+                                                                    print(label2)
 #                                                                 if label1 == label2 :
                                                                     
     #                                                                 print(noeud1, voisin_1)
     #                                                                 print(noeud2, voisin_2)
                                                                     ## la paire (voisin_1, voisin_2) peut deja exister dans le sous-graphe commun final ou temporaire, dans ce cas, pas besoin de le rajouter (mais on peut avoir des aretes a rajouter)
                                                                     if (voisin_1, voisin_2) not in liste_superposes_temp and graphe1.nodes[voisin_1]["marque"] != voisin_2 and graphe2.nodes[voisin_2]["marque"] != voisin_1 :
+                                                                        
                                                                         liste_superposes_temp.append((voisin_1, voisin_2))
                                                                     
                                                                     if label1 == 'B53' : ## si c'est une liaison B53, on ne l'ajoute que dans un sens dans la liste des aretes
                                                                         liste_superposes_ar_temp.add(((noeud1, voisin_1, edge_1), (noeud2, voisin_2, edge_2)))
+                                                                        ## on considere que le voisin est a regarder si le lien vient d'une liaison non cov
+                                                                        for couple1, couple2 in liste_superposes_ar_temp :
+                                                                            if noeud1 == couple1[0] and noeud2 == couple2[0] :
+                                                                                if graphe1[noeud1][couple1[1]][couple1[2]]["label"] != 'B53' : ## normalement dans graphe2, c'est le même label puisqu'on a superpose les aretes
+                                                                                    nb_voisins_trouves += 1   
+                                                                                    print("toutcouk")
+                                                                                    print(liste_superposes_ar_temp)
+                                                                                    print(noeud1)
+                                                                                    print(noeud2)
+                                                                                    print(couple1)
+                                                                                    print(couple2)
                                                                     else : ## si ce n'est pas une liaison B53, il faut ajouter l'arete dans les deux sens
-    #                                                                     print("roupoulou")
+                                                                        print("roupoulou")
                                                                         nb_voisins_trouves += 1
                                                                         nb_aretes += min(graphe1.nodes[noeud1]["poids"], graphe2.nodes[noeud2]["poids"])
                                                                         liste_superposes_ar_temp.add(((noeud1, voisin_1, edge_1), (noeud2, voisin_2, edge_2)))
+                                                                        print(noeud1, voisin_1)
+                                                                        print(noeud2, voisin_2)
                                                                         ## mais l'arete dans l'autre sens ne porte peut-etre pas le meme numero (s'il y a plusieurs aretes entre les deux memes sommets)
                                                                         for edge_1_test in graphe1[voisin_1][noeud1] :
                                                                             for edge_2_test in graphe2[voisin_2][noeud2] :
@@ -1847,10 +1880,9 @@ def new_heuristique(graphe1_deb, graphe2_deb):
                                                                         liste_superposes_temp.append((voisin_1, voisin_2))
             
                                                                     liste_superposes_ar_temp.add(((voisin_1, noeud1, edge_1), (voisin_2, noeud2, edge_2)))
-#                                     print("roooo")
-#                                     print(liste_superposes_temp)
-#                                     print(liste_superposes_ar_temp)
+                                    
                                     if nb_voisins_trouves == 0 and graphe1.nodes[noeud1]["type"] in [1,2,3] :
+                                        print("raaa")
 #                                         print("roupoulou")
 #                                         print((noeud1, noeud2))
 #                                         print(liste_superposes_temp)
@@ -1871,31 +1903,50 @@ def new_heuristique(graphe1_deb, graphe2_deb):
                                 compteur += 1    
 #                             print("et la")
 #                             print(nb_aretes) 
-
+                            
+                            
+                            print("roooo")
+                            print(compteur)
+                            print(noeud1)
+                            print(noeud2)
+                            print(liste_superposes_temp)
+                            print(liste_superposes_ar_temp)
+                            print(nb_aretes)
+                            print(nb_aretes_max)
                             ''' on recherche le sous-graphe commun temporaire qui a le plus grand nombre d'aretes parmi les sous-graphes communs issus des differentes premieres paires de sommets (noeud_maxi, sommet) dans toutes les composantes du graphe2 compatibles avec comp1
                             , et c'est celui-la qu'on garde en memoire  '''    
                             if nb_aretes > nb_aretes_max :
+                                print("hou")
 #                                 print("tu rentres la")
                                 sommet_max_2 = sommet
                                 sommet_max_1 = noeud_maxi
                                 comp2_max = comp2
-#                                 print(sommet_max_1)
-#                                 print(sommet_max_2)
-#                                 print(liste_superposes_temp)
-#                                 print(liste_superposes_ar_temp)
+                                print(sommet_max_1)
+                                print(sommet_max_2)
+                                print(liste_superposes_temp)
+                                print(liste_superposes_ar_temp)
                                 nb_aretes_max = nb_aretes
                                 liste_superposes_a_garder = list(liste_superposes_temp)
                                 liste_superposes_a_garder_ar = list(liste_superposes_ar_temp)  
                             
                 indice_2 += 1
-#             print(composantes_1)
-#             print(composantes_2)        
+            print("hahahah")
+            print(noeud_maxi)
+            print(composantes_1)
+            print(composantes_2)        
 #             
 #             print("rah")
-#             print(liste_superposes_a_garder)
-#             print(liste_superposes_a_garder_ar)
+            print(liste_superposes_a_garder)
+            print(liste_superposes_a_garder_ar)
+            print(comp1)
+            print(comp2_max)
+            print(sommet_max_1)
+            print(sommet_max_2)
 
             if sommet_max_2 != -1 and sommet_max_1 != -1 : 
+                        print("juju")
+                        print(sommet_max_1)
+                        print(sommet_max_2)
                         ''' on a trouve un morceau de graphe compatible dans comp1 en partant de noeud_maxi'''
 #                         print("gros tas")
 #                         print(comp2_max)
@@ -1905,7 +1956,9 @@ def new_heuristique(graphe1_deb, graphe2_deb):
                         for paire in liste_superposes_a_garder :
                             liste_superposes.add(paire)
                             graphe1.nodes[paire[0]]["marque"] = paire[1]
+                            graphe1_deb.nodes[paire[0]]["marque"] = paire[1]
                             graphe2.nodes[paire[1]]["marque"] = paire[0]
+                            graphe2_deb.nodes[paire[1]]["marque"] = paire[0]
                             
                             graphe1.nodes[paire[0]]["num_composante"] = -1
                             graphe2.nodes[paire[1]]["num_composante"] = -1
@@ -2031,14 +2084,15 @@ def new_heuristique(graphe1_deb, graphe2_deb):
                                         compteur_non_traite = i
                                 if compteur_traite < len(composantes_1[comp1]) - 1 :
                                     new_groupes_1.append(composantes_1[comp1][compteur_traite+1:compteur_non_traite+1])
-                                                                        
+                                
                                 for i in range(len(new_groupes_1)) :
                                     if len(new_groupes_1[i]) >  0 :
                                         for elt in new_groupes_1[i] :
                                             graphe1.nodes[elt]["num_composante"].append(chr(ord('a') + i))
                                         composantes_1.update({tuple(graphe1.nodes[elt]["num_composante"]) : list(new_groupes_1[i])})
-#                                 print("ramousnif")
-#                                 print(composantes_1)
+                                print("ramousnif")
+                                print(new_groupes_1)
+                                print(composantes_1)
     
                             if nb_nb_2 > 1 :
                                 ## cas ou comp2_max est constituee de plusieurs chaines
@@ -2087,8 +2141,11 @@ def new_heuristique(graphe1_deb, graphe2_deb):
                     
                 
             else :
+                        print("kuu")
+                        print(noeud_maxi)
                         ''' on n'a pas trouve de morceau de graphe compatible avec noeud_maxi dans comp1'''
                         graphe1.nodes[noeud_maxi]["marque"] = -1
+                        graphe1_deb.nodes[noeud_maxi]["marque"] = -1
                         
                         
                         ## idem que dans l'autre cas 
@@ -2117,14 +2174,34 @@ def new_heuristique(graphe1_deb, graphe2_deb):
                                 if len(new_groupes) != 2 :
                                     print("plus de deux nouvelles composantes, bizarre")
                                     exit()
+                                
                                 if len(new_groupes[0]) > 0 : 
+                                    a_enlever_du_groupe = []
                                     for elt in new_groupes[0] :
-                                        graphe1.nodes[elt]["num_composante"].append('a')
-                                    composantes_1.update({tuple(graphe1.nodes[elt]["num_composante"]) : list(new_groupes[0])})
+                                        print(elt)
+                                        print(graphe1.nodes[elt]["num_composante"])
+                                        if graphe1.nodes[elt]["num_composante"] != -1 :
+                                            graphe1.nodes[elt]["num_composante"].append('a')
+                                        else :
+                                            a_enlever_du_groupe.append(elt)
+                                    for elt in a_enlever_du_groupe :
+                                        new_groupes[0].remove(elt)
+                                    if len(new_groupes[0]) > 0 :
+                                        composantes_1.update({tuple(graphe1.nodes[new_groupes[0][0]]["num_composante"]) : list(new_groupes[0])})
+                                
                                 if len(new_groupes[1]) > 0 : 
+                                    a_enlever_du_groupe = []
                                     for elt in new_groupes[1] :
-                                        graphe1.nodes[elt]["num_composante"].append('b')
-                                    composantes_1.update({tuple(graphe1.nodes[elt]["num_composante"]) : list(new_groupes[1])})
+                                        print(elt)
+                                        print(graphe1.nodes[elt]["num_composante"])
+                                        if graphe1.nodes[elt]["num_composante"] != -1 :
+                                            graphe1.nodes[elt]["num_composante"].append('b')
+                                        else :
+                                            a_enlever_du_groupe.append(elt)
+                                    for elt in a_enlever_du_groupe :
+                                        new_groupes[1].remove(elt)
+                                    if len(new_groupes[1]) > 0 :
+                                        composantes_1.update({tuple(graphe1.nodes[new_groupes[1][0]]["num_composante"]) : list(new_groupes[1])})
                         else :
                             ## cas ou comp1 est constitue de plusieurs chaines
                             ## dans ce cas, on recherche les composantes connexes de comp1 en supprimant le noeud_maxi
@@ -2152,10 +2229,11 @@ def new_heuristique(graphe1_deb, graphe2_deb):
 
     ''' on construit le sous-graphe commun a partir des attributs marque des noeuds et des aretes des graphes '''        
     sous_graphe_commun = nx.MultiDiGraph()
-
+    print("on construit le graphe commun")
     for noeud, data in graphe1.nodes(data=True) :
-#         print(data)
+        print(noeud, data["marque"])
         if data["marque"] not in [-1,0] :
+            print(noeud)
             sous_graphe_commun.add_node((noeud, data["marque"])) 
     
     for u,v,key,data in graphe1.edges(data=True, keys=True) :
@@ -2219,7 +2297,12 @@ def new_heuristique(graphe1_deb, graphe2_deb):
                                     ## si c'est le cas, on ne la rajoute pas mais on verifie quand meme les aretes
                                     if graphe1_deb.nodes[voisin]["marque"] in [0, voisin_2] and graphe2_deb.nodes[voisin_2]["marque"] in [0, voisin] :#and (voisin, voisin_2) not in sous_graphe_commun.nodes() :
                                         graphe1_deb.nodes[voisin]["marque"] = voisin_2
+                                        if voisin in graphe1.nodes() :
+                                            graphe1.nodes[voisin]["marque"] = voisin_2
+                                            
                                         graphe2_deb.nodes[voisin_2]["marque"] = voisin
+                                        if voisin in graphe2.nodes() :
+                                            graphe2.nodes[voisin_2]["marque"] = voisin
                                         sous_graphe_commun.add_node((voisin, voisin_2))
                                         liste_superposes.add((voisin, voisin_2))
                                     
@@ -2244,28 +2327,49 @@ def new_heuristique(graphe1_deb, graphe2_deb):
                                                 else :
                                                     sous_graphe_commun.add_edge((voisin, voisin_2), (i, i), label=label1)
     
+    print(graphe1_deb.nodes.data())
+    
+    for noeud, data in graphe1.nodes(data=True) :
+        print(noeud, data["marque"])
+        print(noeud, graphe1_deb.nodes[noeud]["marque"])
+    
     return sous_graphe_commun
     
 if __name__ == '__main__':
-#     with open(NEW_EXTENSION_PATH_TAILLE+"fichier_4ybb_14_4.pickle", "rb") as fichier_graphe1 :
-#                             mon_depickler_1 = pickle.Unpickler(fichier_graphe1)
-#                             graphe1_vrai = mon_depickler_1.load()
-#                                            
-#     with open(NEW_EXTENSION_PATH_TAILLE+"fichier_4ybb_18_4.pickle", "rb") as fichier_graphe2 :
-#                             mon_depickler_2 = pickle.Unpickler(fichier_graphe2)
-#                             graphe2_vrai = mon_depickler_2.load()  
-#                              
-#     graphe_commun = new_heuristique(graphe1_vrai, graphe2_vrai)
-#     print(graphe_commun.nodes.data())
-#      
-#     sim_1 = calcul_sim_aretes_avec_coeff(graphe1_vrai, graphe2_vrai, graphe_commun, "rat", 1, 1, 1)
-#     print(sim_1)
-#     dico_graphe = {(('4ybb', 14), ('4ybb', 18)) : {"graphe" : graphe_commun, "sim" : sim_1}}
-#     with open("dico_algo_heuristique.pickle", 'wb') as fichier_graphe :
-#         mon_pickler = pickle.Pickler(fichier_graphe)
-#         mon_pickler.dump(dico_graphe) 
+    with open(NEW_EXTENSION_PATH_TAILLE+"taille_6/fichier_6nd6_7.pickle", "rb") as fichier_graphe1 :
+                            mon_depickler_1 = pickle.Unpickler(fichier_graphe1)
+                            graphe1_vrai = mon_depickler_1.load()
+                                            
+    with open(NEW_EXTENSION_PATH_TAILLE+"taille_6/fichier_1vqo_12.pickle", "rb") as fichier_graphe2 :
+                            mon_depickler_2 = pickle.Unpickler(fichier_graphe2)
+                            graphe2_vrai = mon_depickler_2.load()  
+                              
+    graphe_commun = new_heuristique(graphe1_vrai, graphe2_vrai)
+    print(graphe_commun.nodes.data())
+      
+    sim_1 = calcul_sim_aretes_avec_coeff(graphe1_vrai, graphe2_vrai, graphe_commun, "rat", 1, 1, 1)
+    print(sim_1)
     
-    #exit()
+    graphe_commun_2 = new_heuristique(graphe2_vrai, graphe1_vrai)
+    
+    sim_2 = calcul_sim_aretes_avec_coeff(graphe2_vrai, graphe1_vrai, graphe_commun_2, "rat", 1, 1, 1)
+    sim_2 = 0.0
+    if sim_1 >= sim_2 :
+        print("youpi")
+        print(sim_1)
+        dico_graphe = {(('6nd6', 7), ('1vqo', 12)) : {"graphe" : graphe_commun, "sim" : sim_1}}
+        with open("dico_algo_heuristique.pickle", 'wb') as fichier_graphe :
+            mon_pickler = pickle.Pickler(fichier_graphe)
+            mon_pickler.dump(dico_graphe) 
+    else :
+        print("youpa")
+        print(sim_2)
+        dico_graphe = {(('1vqo', 12), ('6nd6', 7)) : {"graphe" : graphe_commun_2, "sim" : sim_2}}
+        with open("dico_algo_heuristique.pickle", 'wb') as fichier_graphe :
+            mon_pickler = pickle.Pickler(fichier_graphe)
+            mon_pickler.dump(dico_graphe) 
+    
+    exit()
     
     
 #     with open("dico_algo_heuristique_new_v_e8f97fe.pickle", 'rb') as fichier_graphe :
@@ -2375,13 +2479,23 @@ if __name__ == '__main__':
 #             
     #exit()
     
-    
-#     with open("fichier_diff.pickle", 'rb') as fichier_diff :
-#             mon_depickler = pickle.Unpickler(fichier_diff)
-#             liste_pas_pareil = mon_depickler.load()
-#             print(liste_pas_pareil)
-#             print(len(liste_pas_pareil))
-#             exit()
+    with open("Heuristique/fichier_diff_90b17ce.pickle", 'rb') as fichier_diff :
+        mon_depickler = pickle.Unpickler(fichier_diff)
+        liste_pas_pareil_1 = mon_depickler.load()
+    with open("fichier_diff.pickle", 'rb') as fichier_diff :
+            mon_depickler = pickle.Unpickler(fichier_diff)
+            liste_pas_pareil = mon_depickler.load()
+            print(liste_pas_pareil)
+            print(len(liste_pas_pareil))
+            
+            compter = 0
+            for elt in liste_pas_pareil :
+                if elt not in liste_pas_pareil_1 :
+                    print(elt)
+                    compter += 1
+            
+            print(compter)
+            #exit()
 # #     with open(NEW_EXTENSION_PATH_TAILLE+"fichier_5dm6_4_2.pickle", "rb") as fichier_graphe1 :
 #         mon_depickler_1 = pickle.Unpickler(fichier_graphe1)
 #         graphe1 = mon_depickler_1.load()
