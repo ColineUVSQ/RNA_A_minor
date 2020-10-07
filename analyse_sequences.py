@@ -23,7 +23,7 @@ import re
 from networkx.algorithms import isomorphism
 from recup_data.new_algo_comparaison import recup_chaines
 import numpy as np
-from sympy.physics.quantum.spin import couple
+from urllib import request
 
 
 def stocker_type_arn():
@@ -132,6 +132,176 @@ def stocker_resolution_tot():
     with open("resolutions_tot.pickle", 'wb') as fichier_pickle :
             mon_pickler = pickle.Pickler(fichier_pickle)
             mon_pickler.dump(resolutions)
+            
+
+def non_redondantes_seq_RNA3Dmotifatlas_new(liste_tout_aminor):
+    '''
+    Recherche la redondance dans les structures d'ARN de la PDB, à l'aide des classes de représentants de RNA 3D motif Atlas
+    '''
+    with open("resolutions_tot.pickle", 'rb') as fichier_pickle :
+        mon_depickler = pickle.Unpickler(fichier_pickle)
+        resolutions = mon_depickler.load()
+        
+    with open("Resultats_sequences/dico_organismes.pickle", 'rb') as fichier_pickle :
+        mon_depickler = pickle.Unpickler(fichier_pickle)
+        orgs = mon_depickler.load()
+    
+    with open("Resultats_sequences/nrlist_3.136_all.csv", 'r') as fichier_csv_motifs_atlas:
+        csvreader = csv.reader(fichier_csv_motifs_atlas)
+        
+        
+        
+        liste_plus = []
+        dico_redondance = {}
+        for row in csvreader :
+            if '+' not in row[1] : ## cas de base
+                
+                repr = (row[1].split("|")[0], row[1].split("|")[2])
+                
+                representes = []
+                autres = row[2].split(",")
+                for elt in autres :
+                    representes.append((elt.split("|")[0], elt.split("|")[2]))
+                dico_redondance.update({repr:representes})
+            else : ## cas où le représentant de la classe est composé de plusieurs structures (je sais pas pourquoi ?)
+                compteur = 0
+                repr = []
+                for morceau_row in row[1].split('+') :
+                    repr.append((morceau_row.split("|")[0], morceau_row.split("|")[2]))
+                
+                bizarre = False
+                representes = [[]]*len(repr)
+                print(representes)
+                print(len(repr))
+                autres = row[2].split(",")
+                for elt in autres :
+                    c = 0
+                    
+                    for elt_2 in elt.split('+') :
+                        print(repr)
+                        if c > len(representes)-1 :
+                            representes.append([])
+                        representes[c].append((elt_2.split("|")[0], elt_2.split("|")[2]))
+                        c += 1
+                c = 0
+                for elt in repr :
+                    dico_redondance.update({elt : representes[c] })
+                    
+                    c+= 1
+                
+
+        
+        print(dico_redondance)
+        print(len(dico_redondance))
+        for elt in dico_redondance :
+            print(elt)
+            print(dico_redondance[elt])
+            
+        
+            
+    
+    with open("Resultats_sequences/graphs_all_2020_07_with_SSEs.pickle", 'rb') as fichier_pickle_1 :
+        mon_depickler = pickle.Unpickler(fichier_pickle_1)
+        graphes = mon_depickler.load()
+        print("Nombre d'ARN en tout :")
+        print(len(graphes))
+        
+        
+        liste_non_trouvees = []
+        liste_pas_repr = []
+        liste_nom_graphes = []
+        liste_plusieurs = []
+        liste_nom_graphes_aminor = []
+        
+        
+        for cle in liste_tout_aminor :
+            with open("Nouvelles_donnees/fichier_%s_%s_10.pickle"%(cle[1][0], cle[1][1]), "rb") as fichier_graphe :
+                mon_depickler = pickle.Unpickler(fichier_graphe)
+                extension = mon_depickler.load()
+                
+                if cle[1][0] == '4v67' :
+                    print(extension.nodes[1]["num_ch"])
+                    print(extension.nodes[3]["num_ch"])
+                    print(extension.nodes[5]["num_ch"])
+                
+                if (cle[1][0].upper(), extension.nodes[1]["num_ch"]) not in liste_nom_graphes_aminor :
+                    liste_nom_graphes_aminor.append((cle[1][0].upper(), extension.nodes[1]["num_ch"]))
+                
+                if (cle[1][0].upper(), extension.nodes[3]["num_ch"]) not in liste_nom_graphes_aminor :
+                    liste_nom_graphes_aminor.append((cle[1][0].upper(), extension.nodes[3]["num_ch"]))
+                
+                if (cle[1][0].upper(), extension.nodes[5]["num_ch"]) not in liste_nom_graphes_aminor :
+                    liste_nom_graphes_aminor.append((cle[1][0].upper(), extension.nodes[5]["num_ch"]))
+        
+        print(len((liste_nom_graphes_aminor)))          
+        #exit() 
+        #a_faire = [liste_nom_graphes_aminor, graphes]
+        liste_a_faire = graphes
+        groupes_redondances_aminor = []
+        
+        
+        c = 0
+        for elt in liste_nom_graphes_aminor :
+            existe = False
+            for cle in dico_redondance :
+                if cle == elt or elt in dico_redondance[cle] :
+                    existe = True
+            if not existe :
+                c += 1
+                print(elt)
+        print(c)
+        print(len(liste_nom_graphes_aminor))
+        #exit()
+        
+        
+#         for cle in dico_redondance :
+#             cle_dans = False
+#             if cle in liste_nom_graphes_aminor :
+#                 groupes_redondances_aminor.append([cle])
+#                 cle_dans = True
+#             else :
+#                 for elt in dico_redondance[cle] :
+#                     if elt in liste_nom_graphes_aminor :
+#                         if cle_dans :
+#                             groupes_redondances_aminor[len(groupes_redondances_aminor)-1].append(elt)
+#                            
+#                         else :
+#                             groupes_redondances_aminor.append([elt])
+#                             cle_dans = True
+#         
+#         print(groupes_redondances_aminor)
+#         for elt in groupes_redondances_aminor :
+#             print(len(elt))
+#             print(elt)
+#         print(len(groupes_redondances_aminor))
+        #exit()
+        liste_nom_graphes = []
+        for cle in dico_redondance :
+            if cle in liste_a_faire :
+                liste_nom_graphes.append([])
+                for elt in dico_redondance[cle] :
+                    if elt in graphes :
+                        liste_nom_graphes[len(liste_nom_graphes)-1].append(elt)
+            else :
+                a_ajoute = False
+                for elt in dico_redondance[cle] :
+                    if elt in liste_nom_graphes_aminor:
+                        a_ajoute = True
+                        break
+                if a_ajoute :
+                    liste_nom_graphes.append([])
+                    for elt in dico_redondance[cle] :
+                        if elt in graphes :
+                            liste_nom_graphes[len(liste_nom_graphes)-1].append(elt)
+                    
+        
+        print(liste_nom_graphes)
+        print(len(liste_nom_graphes))
+        
+        return liste_nom_graphes
+
+
+
 
 def non_redondantes_seq_RNA3Dmotifatlas(liste_tout_aminor):
     '''
@@ -140,6 +310,10 @@ def non_redondantes_seq_RNA3Dmotifatlas(liste_tout_aminor):
     with open("resolutions_tot.pickle", 'rb') as fichier_pickle :
         mon_depickler = pickle.Unpickler(fichier_pickle)
         resolutions = mon_depickler.load()
+        
+    with open("Resultats_sequences/dico_organismes.pickle", 'rb') as fichier_pickle :
+        mon_depickler = pickle.Unpickler(fichier_pickle)
+        orgs = mon_depickler.load()
     
     with open("Resultats_sequences/nrlist_3.136_all.csv", 'r') as fichier_csv_motifs_atlas:
         csvreader = csv.reader(fichier_csv_motifs_atlas)
@@ -235,7 +409,7 @@ def non_redondantes_seq_RNA3Dmotifatlas(liste_tout_aminor):
         print(len((liste_nom_graphes_aminor)))          
         #exit() 
         #a_faire = [liste_nom_graphes_aminor, graphes]
-        a_faire = [graphes]
+        liste_a_faire = graphes
         groupes_redondances_aminor = []
         
         
@@ -278,14 +452,16 @@ def non_redondantes_seq_RNA3Dmotifatlas(liste_tout_aminor):
         compte_false = 0
         compte_true = 0
         compteur_ramousnif = 0
-        for liste in a_faire :
-            for cle in liste:
+        groupe_a_minor= []
+        #for liste in a_faire :
+        for cle in liste_a_faire:
+            if cle not in liste_nom_graphes_aminor :
                 ## si on veut ajouter une contrainte de résolution
                 res = resolutions[cle[0]]
                 #res = 2.0
                 
                 
-                if res != None and res <= 3.0 and not (compteur == 1 and cle in liste_nom_graphes_aminor ) :
+                if res != None and res <= 3.0 and orgs[cle] != None :
                 #if cle == ('6QZP', 'L5') :
                     print(cle)
                     trouve = False
@@ -293,23 +469,15 @@ def non_redondantes_seq_RNA3Dmotifatlas(liste_tout_aminor):
                     for elt in dico_redondance :
                         if '+' not in elt :
                             if cle == elt :
-                                if compteur == 1 :
-                                    compteur_ramousnif += 1
-                                    repr_dans_liste = False
-                                    for redondant in dico_redondance[elt] :
+                                repr_dans_liste = False
+                                for redondant in dico_redondance[elt] :
                                         if redondant in liste_nom_graphes_aminor :
                                             repr_dans_liste = True
                                 
-                                    print(repr_dans_liste)
-                                    if not repr_dans_liste :
-                                        trouve = True
-                                        print("raaaaat")
-                                        compte_true += 1
-                                    else :
-                                        compte_false += 1
-                                else :
-                                    
+                                if not repr_dans_liste :
                                     trouve = True
+                                else : 
+                                    groupe_a_minor.append(elt)
                             elif cle in dico_redondance[elt] :
                                 trouve_repr.append(elt)
                         else : ## cas des classes au représentant multiple
@@ -317,18 +485,24 @@ def non_redondantes_seq_RNA3Dmotifatlas(liste_tout_aminor):
                             for elt_2 in elt.split('+') :
                                 elt_split.append((elt_2.split("|")[0], elt_2.split('|')[2]))
                             if cle in elt_split :
-                                if compteur == 1 :
-                                    repr_dans_liste = False
-                                    for redondant in dico_redondance[elt] :
-                                        if redondant in liste_nom_graphes_aminor :
+                                repr_dans_liste = False
+                                for redondant in dico_redondance[elt] :
+                                    for redondant2 in redondant :
+                                        if redondant2 in liste_nom_graphes_aminor :
                                             repr_dans_liste = True
-                                    if not repr_dans_liste :
-                                        trouve = True
-                                        print("riiiiiit")
-                                else :
+                                if not repr_dans_liste :
                                     trouve = True
+                                    print("riiiiiit")
+                                else : 
+                                    groupe_a_minor.append(elt)
+                                        
+                            
                             elif cle in dico_redondance[elt] :
                                 trouve_repr.append(elt_split)
+                            else :
+                                for redondant in dico_redondance[elt] :
+                                    if cle in redondant :
+                                        trouve_repr.append(elt_split)
                                 
                 
                     print(trouve)
@@ -337,7 +511,7 @@ def non_redondantes_seq_RNA3Dmotifatlas(liste_tout_aminor):
                     if trouve :
                         if cle not in liste_nom_graphes :
                             liste_nom_graphes.append(cle)
-                    elif len(trouve_repr) == 0 :
+                    elif len(trouve_repr) == 0 and cle not in groupe_a_minor :
                         print("aaaaaah")
                         #if cle in liste_plus :
                         liste_non_trouvees.append(cle)
@@ -372,12 +546,22 @@ def non_redondantes_seq_RNA3Dmotifatlas(liste_tout_aminor):
         print(liste_nom_graphes)
         print(len(liste_nom_graphes))
         
-#         c = 0
-#         for elt in liste_nom_graphes_aminor :
-#             if elt not in liste_nom_graphes :
-#                 c += 1
-#                 print(elt)
-#         print(c)
+        c = 0
+        for elt in liste_nom_graphes_aminor :
+            if elt in liste_nom_graphes :
+                c += 1
+                print(elt)
+        print(c)
+        
+        print(groupe_a_minor)
+        print(len(groupe_a_minor))
+        
+        c = 0
+        for elt in liste_nom_graphes_aminor :
+            if elt in groupe_a_minor :
+                c += 1
+                print(elt)
+        print(c)
         
         ## les structures de notre jeu de données non trouvées dans les classes de la base de données
         print(liste_non_trouvees)
@@ -426,9 +610,9 @@ def non_redondantes_seq_RNA3Dmotifatlas(liste_tout_aminor):
         print(liste_plusieurs)
         print(len(liste_plusieurs))
         
-        liste_tot = []
-        liste_tot.extend(liste_nom_graphes)
-        liste_tot.append(('2VQE', 'A'))
+#         liste_tot = []
+#         liste_tot.extend(liste_nom_graphes)
+#         liste_tot.append(('2VQE', 'A'))
         
         print(compte_false)
         print(compte_true)
@@ -436,7 +620,7 @@ def non_redondantes_seq_RNA3Dmotifatlas(liste_tout_aminor):
         #liste_tot.extend(liste_non_trouvees)
         #liste_tot.extend(liste_pas_repr)
         
-        return liste_tot
+        return liste_nom_graphes
 
 def recup_liste_pos_aminor():
     ''' 
@@ -1012,34 +1196,131 @@ def edge_match(d_g1, d_g2):
         return True
     return False
 
+
+def recup_org_nat(num_pdb, num_ch):
+    org = None  
+    file = PATH_MMCIF+ num_pdb+".cif"
+    if num_pdb+".cif" not in os.listdir(PATH_MMCIF) : ## si le fichier n est pas encore stocke en interne, on va le chercher sur la PDB et on le stocke ou on veut
+        print("petit rat")
+        url = 'http://www.rcsb.org/pdb/files/%s.cif' % num_pdb
+        request.urlretrieve(url, file)
+        print("houhou")
+    try :     
+        doc = cif.read_file(PATH_MMCIF+num_pdb+".cif")
+        block = doc.sole_block()
+        
+        cat = block.find_mmcif_category("_entity_poly.") 
+        #print(list(cat.tags))
+        id = -1
+        for r in cat :
+            #print(tuple(row))
+            num_chaine = r[6].split(",")
+            
+#                             print("petit rat")
+#                             print(num_ch)
+            if num_ch in num_chaine :
+                id = r[0]
+        
+        
+        cat = block.find_mmcif_category("_entity_src_nat.")         
+        
+             
+        for r in cat :
+            if r[0] == id :
+                org = r[6]
+        
+        return org
+    except RuntimeError :
+        print("probleme de fichier cif : %s"%num_pdb)
+        return -1
+        
+def recup_org_gen(num_pdb, num_ch):
+    org = None  
+    file = PATH_MMCIF+ num_pdb+".cif"
+    if num_pdb+".cif" not in os.listdir(PATH_MMCIF) : ## si le fichier n est pas encore stocke en interne, on va le chercher sur la PDB et on le stocke ou on veut
+        print("petit rat")
+        url = 'http://www.rcsb.org/pdb/files/%s.cif' % num_pdb
+        request.urlretrieve(url, file)
+        print("houhou")
+    try :     
+        doc = cif.read_file(PATH_MMCIF+num_pdb+".cif")
+        block = doc.sole_block()
+        
+        cat = block.find_mmcif_category("_entity_poly.") 
+        #print(list(cat.tags))
+        id = -1
+        for r in cat :
+            #print(tuple(row))
+            num_chaine = r[6].split(",")
+            
+#                             print("petit rat")
+#                             print(num_ch)
+            if num_ch in num_chaine :
+                id = r[0]
+        
+        
+        cat = block.find_mmcif_category("_entity_src_gen.")         
+        
+             
+        for r in cat :
+            if r[0] == id :
+                org = r[6]
+        
+        return org
+    except RuntimeError :
+        print("probleme de fichier cif : %s"%num_pdb)
+        return -1
+
+
 def test(clusters, graphes):
     with open("Resultats_sequences/nrlist_3.136_all.csv", 'r') as fichier_csv_motifs_atlas:
         csvreader = csv.reader(fichier_csv_motifs_atlas)
+        
+        compteur = 0
         dico_redondance = {}
         for row in csvreader :
+            print(compteur)
+            compteur += 1
             if '+' not in row[1] : ## cas de base
                 
                 repr = (row[1].split("|")[0], row[1].split("|")[2])
                 
-                representes = []
-                autres = row[2].split(",")
-                for elt in autres :
-                    representes.append((elt.split("|")[0], elt.split("|")[2]))
-                dico_redondance.update({repr:representes})
+                org = recup_org_nat(repr[0], repr[1])
+                
+                if org != None :
+                    representes = []
+                    autres = row[2].split(",")
+                    for elt in autres :
+                        org = recup_org_nat(elt.split("|")[0], elt.split("|")[2])
+                        if org != None :
+                            representes.append((elt.split("|")[0], elt.split("|")[2]))
+                    dico_redondance.update({repr:representes})
             else : ## cas où le représentant de la classe est composé de plusieurs structures (je sais pas pourquoi ?)
-                compteur = 0
-                repr = tuple(row[1])
+                #compteur = 0
+                repr = row[1]
                 bizarre = False
                 representes = []
-                autres = row[2].split(",")
-                for elt in autres :
-                    for elt_2 in elt.split('+') :
-                        representes.append((elt_2.split("|")[0], elt_2.split("|")[2]))
-
-                dico_redondance.update({repr:representes})
+                
+                orgs = []
+                for elt in repr.split('+') :
+                    e = (elt.split("|")[0], elt.split("|")[2])
+                    orgs.append(recup_org_nat(e[0], e[1]))
+                    
+                if None not in orgs :
+                    autres = row[2].split(",")
+                    for elt in autres :
+                        representes_temp = []
+                        for elt_2 in elt.split('+') :
+                            org = recup_org_nat(elt_2.split("|")[0], elt_2.split("|")[2])
+                            if org != None :
+                                representes_temp.append((elt_2.split("|")[0], elt_2.split("|")[2]))
+                        representes.append(representes_temp)
+                    dico_redondance.update({repr:representes})
+                    
     
-    
-    
+        print(len(dico_redondance))
+        print(compteur)
+        exit()
     with open("Resultats_sequences/fichier_csv_expr_reg_test.csv", 'w', newline="") as fichier_csv :
         csvwriter = csv.writer(fichier_csv)
         csvwriter.writerow(["num_cluster", "expr", "cle dico redondance", "occ"])        
@@ -1067,6 +1348,77 @@ def test(clusters, graphes):
                                 print(len(liste_seq_24[liste_expr]))
                                 compte_tot = 0
                                 for elt in dico_redondance :
+                                    if '+' in elt :
+                                        print(elt)
+                                        elts = elt.split('+')
+                                        liste_elts = []
+                                        for e in elts :
+                                            liste_elts.append((e.split("|")[0],e.split("|")[2]))
+                                        i = 0
+                                        for e in liste_elts :
+                                            compte_13 = 0
+                                            compte_24 = 0
+                                            dico_trouves = {}
+                                            dico_trouves.update({(compteur, liste_expr, e) : [[],[]]})
+                                            dico_seq = donne_seq(graphes, [e])
+                                            print(dico_seq)
+                                            #return
+                                            print(liste_seq_13[liste_expr])
+                                            print(liste_seq_24[liste_expr])
+                                            if e in dico_seq :
+                                                match_it_13 = re.finditer(liste_seq_13[liste_expr], dico_seq[e])
+                                                match_it_24 = re.finditer(liste_seq_24[liste_expr], dico_seq[e])
+                                            
+                                                for m in match_it_13 :
+                                                    pos = m.span()
+                                                    dico_trouves[(compteur, liste_expr,e)][0].append(pos[0])
+                                                    print(pos)
+                                                    
+                                                for m in match_it_24 :
+                                                    pos = m.span()
+                                                    dico_trouves[(compteur, liste_expr,e)][1].append(pos[0])
+                                                    print(pos)   
+                                            
+                                                csvwriter.writerow([compteur,liste_expr, liste_seq_13[liste_expr],liste_seq_24[liste_expr], e, dico_trouves[(compteur, liste_expr,e)][0], dico_trouves[(compteur, liste_expr,e)][1]  ])
+                                            nb_trouves_13 = len(dico_trouves[(compteur, liste_expr,e)][0])
+                                            nb_trouves_24 = len(dico_trouves[(compteur, liste_expr,e)][1])
+                                            
+                                            for elt2 in dico_redondance[elt] :
+                                                
+                                                    print(elt)
+                                                    print(elt2)
+                                                    dico_trouves.update({(compteur, liste_expr, elt2[i]) : [[],[]]})
+                                                    dico_seq = donne_seq(graphes, [elt2[i]])
+                                                    if elt2[i] in dico_seq :
+                                                        match_it_13 = re.finditer(liste_seq_13[liste_expr], dico_seq[elt2[i]])
+                                                        match_it_24 = re.finditer(liste_seq_24[liste_expr], dico_seq[elt2[i]])
+                                                    
+                                                        for m in match_it_13 :
+                                                            pos = m.span()
+                                                            dico_trouves[(compteur, liste_expr, elt2[i])][0].append(pos[0])
+                                                            print(pos)
+                                                            
+                                                        for m in match_it_24 :
+                                                            pos = m.span()
+                                                            dico_trouves[(compteur, liste_expr, elt2[i])][1].append(pos[0])
+                                                            print(pos)   
+                                                    
+                                                                                                        
+                                                        if len(dico_trouves[(compteur, liste_expr,elt2[i])][0]) > nb_trouves_13 or  len(dico_trouves[(compteur, liste_expr,elt2[i])][1]) > nb_trouves_24:
+                                                            
+                                                            csvwriter.writerow([compteur,liste_expr, liste_seq_13[liste_expr],liste_seq_24[liste_expr], "", elt2[i], dico_trouves[(compteur, liste_expr,elt2[i])][0], dico_trouves[(compteur, liste_expr,elt2[i])][1], "Diff"])
+                                                            if len(dico_trouves[(compteur, liste_expr,elt2[i])][0]) > nb_trouves_13 :
+                                                                compte_13 += 1
+                                                            if len(dico_trouves[(compteur, liste_expr,elt2[i])][1]) > nb_trouves_24 :
+                                                                compte_24 += 1
+                                                        else :
+                                                            csvwriter.writerow([compteur,liste_expr, liste_seq_13[liste_expr],liste_seq_24[liste_expr], "", elt2[i], dico_trouves[(compteur, liste_expr,elt2[i])][0], dico_trouves[(compteur, liste_expr,elt2[i])][1]  ])
+    
+                                            if compte_13 >= 1 or compte_24 >= 1 : 
+                                                compte_tot += 1
+                                            i +=  1
+                                                
+                                    else :    
                                         compte_13 = 0
                                         compte_24 = 0
                                         dico_trouves = {}
@@ -1111,14 +1463,21 @@ def test(clusters, graphes):
                                                     dico_trouves[(compteur, liste_expr, elt2)][1].append(pos[0])
                                                     print(pos)   
                                             
-                                                csvwriter.writerow([compteur,liste_expr, liste_seq_13[liste_expr],liste_seq_24[liste_expr], "", elt2, dico_trouves[(compteur, liste_expr,elt2)][0], dico_trouves[(compteur, liste_expr,elt2)][1]  ])
-                                                
-                                                if len(dico_trouves[(compteur, liste_expr,elt2)][0]) != nb_trouves_13 :
-                                                    compte_13 += 1
-                                                if len(dico_trouves[(compteur, liste_expr,elt2)][1]) != nb_trouves_24 :
-                                                    compte_24 += 1
+                                                                                                
+                                                if len(dico_trouves[(compteur, liste_expr,elt2)][0]) > nb_trouves_13 or  len(dico_trouves[(compteur, liste_expr,elt2)][1]) > nb_trouves_24:
+                                                    
+                                                    csvwriter.writerow([compteur,liste_expr, liste_seq_13[liste_expr],liste_seq_24[liste_expr], "", elt2, dico_trouves[(compteur, liste_expr,elt2)][0], dico_trouves[(compteur, liste_expr,elt2)][1], "Diff"])
+                                                    if len(dico_trouves[(compteur, liste_expr,elt2)][0]) > nb_trouves_13 :
+                                                        compte_13 += 1
+                                                    if len(dico_trouves[(compteur, liste_expr,elt2)][1]) > nb_trouves_24 :
+                                                        compte_24 += 1
+                                                else :
+                                                    csvwriter.writerow([compteur,liste_expr, liste_seq_13[liste_expr],liste_seq_24[liste_expr], "", elt2, dico_trouves[(compteur, liste_expr,elt2)][0], dico_trouves[(compteur, liste_expr,elt2)][1]  ])
+
                                         if compte_13 >= 1 or compte_24 >= 1 : 
                                             compte_tot += 1
+                                
+                                            
                                 print(compte_tot)
                                 print(len(dico_redondance))
                                         
@@ -1143,54 +1502,36 @@ def recherche_expr_reg(clusters, liste_non_redondant, graphes, liste_aminor):
     :type graphes: dictionnaire de nx.DiGraph
     :type liste_aminor: liste 
 '''
-    ## récupère les listes de redondance de RNA 3D motif Atlas
-    with open("Resultats_sequences/nrlist_3.136_all.csv", 'r') as fichier_csv_motifs_atlas:
-        csvreader = csv.reader(fichier_csv_motifs_atlas)
-        dico_redondance = {}
-        for row in csvreader :
-            if '+' not in row[1] : ## cas de base
-                
-                repr = (row[1].split("|")[0], row[1].split("|")[2])
-                
-                representes = []
-                autres = row[2].split(",")
-                for elt in autres :
-                    representes.append((elt.split("|")[0], elt.split("|")[2]))
-                dico_redondance.update({repr:representes})
-            else : ## cas où le représentant de la classe est composé de plusieurs structures (je sais pas pourquoi ?)
-                compteur = 0
-                repr = tuple(row[1])
-                bizarre = False
-                representes = []
-                autres = row[2].split(",")
-                for elt in autres :
-                    for elt_2 in elt.split('+') :
-                        representes.append((elt_2.split("|")[0], elt_2.split("|")[2]))
-
-                dico_redondance.update({repr:representes})
     
     ## récupère les séquences de toutes les structures de liste_non_redondant
-    dico_seq_tot = donne_seq(graphes, liste_non_redondant)
+    liste_non_redondant_tot = []
+    for liste in liste_non_redondant :
+        liste_non_redondant_tot.extend(liste)
+    dico_seq_tot = donne_seq(graphes, liste_non_redondant_tot)
+    print(('4V9Q', 'DV') in dico_seq_tot)
+    print(('4V9Q', 'DV') in graphes)
+    #exit()
     
     
-    with open("Resultats_sequences/fichier_csv_expr_reg.csv", 'a', newline="") as fichier_csv :
+    with open("Resultats_sequences/fichier_csv_expr_reg_new_version.csv", 'a', newline="") as fichier_csv :
         csvwriter = csv.writer(fichier_csv)
         csvwriter.writerow(["Numéro cluster", "Expr reg1", "Expr reg2", "Elts cluster", "Nb seq 1 non A-minor", "Nb seq 2 non A-minor", "Non A-minor", "A-minor", "Nb 3 seq non A-minor", "Nb 3 seq A-minor", "Nb struct non A-minor", "Nb struct A-minor"])
 
         dico_trouves = {}
+        dico_couples = {}
         compteur = 1
         #exit()
         for cluster in clusters :
             print(compteur)
-            if len(cluster) > 2 and compteur == 6:
-                print(len(cluster))
-                print(cluster)
+            if len(cluster) > 2 :
+                    print(len(cluster))
+                    print(cluster)
                 
                 ## calcule le graphe commun du cluster
-                graphe_commun_global, dico_graphes, graphe_commun = recherche_graphe_commun([4], cluster, 0.6, "ramou", "Graphes_communs_mai_2020/extensions", compteur)
+                    graphe_commun_global, dico_graphes, graphe_commun = recherche_graphe_commun([4], cluster, 0.6, "ramou", "Graphes_communs_mai_2020/extensions", compteur)
                 
                 #exit()
-                try :
+                #try :
                     ## calcule les expressions régulières
                     liste_seq_13, pos_aminor_seq_13, liste_seq_24, pos_aminor_seq_24 = etablissement_expr_reg(dico_graphes, graphe_commun)
                     print("ramousnif")
@@ -1231,14 +1572,24 @@ def recherche_expr_reg(clusters, liste_non_redondant, graphes, liste_aminor):
                         #for g in range(len(liste_seq_13[liste_expr])) :
                             #for k in range(len(liste_seq_24[liste_expr])) :
                                 ## recherche les occurrences des expressions régulières
-                                print(liste_expr)
-                                print(liste_seq_13[liste_expr])
-                                print(len(liste_seq_13[liste_expr]))
-                                print(liste_seq_24[liste_expr])
-                                print(len(liste_seq_24[liste_expr]))
-                                #exit()
-                                dico_trouves.update({(compteur, liste_expr) : [{},{}]})
-                                for elt in liste_non_redondant :
+                            print(liste_expr)
+                            print(liste_seq_13[liste_expr])
+                            print(len(liste_seq_13[liste_expr]))
+                            print(liste_seq_24[liste_expr])
+                            print(len(liste_seq_24[liste_expr]))
+                            #exit()
+                            
+                            c = 0    
+                            nb_aminor_1_tot = 0
+                            nb_aminor_2_tot = 0
+                            nb_non_aminor_1_tot = 0
+                            nb_non_aminor_2_tot = 0
+                            nb_aminor_tot = 0
+                            nb_non_aminor_tot = 0
+                            for liste in liste_non_redondant :
+                                dico_trouves.update({(compteur, liste_expr, c) : [{},{}]})
+                                dico_couples.update({(compteur, liste_expr, c) : {}})
+                                for elt in liste :
                                         
                                         print(liste_seq_13[liste_expr])
                                         print(liste_seq_24[liste_expr])
@@ -1248,355 +1599,100 @@ def recherche_expr_reg(clusters, liste_non_redondant, graphes, liste_aminor):
                                         print(match_it_13)
                                         print(match_it_24)
                                         
-                                        dico_trouves[(compteur, liste_expr)][0].update({elt : []})
-                                        dico_trouves[(compteur, liste_expr)][1].update({elt : []})
+                                        dico_trouves[(compteur, liste_expr, c)][0].update({elt : []})
+                                        dico_trouves[(compteur, liste_expr, c)][1].update({elt : []})
+                                        
+                                        dico_couples[(compteur, liste_expr, c)].update({elt : []})
                                         
                                         for m in match_it_13 :
                                             pos = m.span()
-                                            dico_trouves[(compteur, liste_expr)][0][elt].append(pos[0])
+                                            dico_trouves[(compteur, liste_expr, c)][0][elt].append(pos[0])
                                             print(pos)
                                             
                                         for m in match_it_24 :
                                             pos = m.span()
-                                            dico_trouves[(compteur, liste_expr)][1][elt].append(pos[0])
-                                            print(pos)   
-    #                             print(dico_trouves) 
-    #                             for cle in dico_trouves :
-    #                                 print(len(dico_trouves[cle][0]))
-    #                                 print(dico_trouves[cle][0])
-    #                                 for x in dico_trouves[cle][0] :
-    #                                     if x[0] == ('4IOA', 'X') :
-    #                                         print(x)
-    #                             for cle in dico_trouves :
-    #                                 print(len(dico_trouves[cle][1]))
-    #                                 print(dico_trouves[cle][1])
-                                    
-                                
-                                #liste_idem_1 = [{x:dico_trouves[(compteur, liste_expr)][0][x]} for x in dico_trouves[(compteur, liste_expr)][0] if x in dico_trouves[(compteur, liste_expr)][1]]
-                                #liste_idem_2 = [{x:dico_trouves[(compteur, liste_expr)][0][x]} for x in dico_trouves[(compteur, liste_expr)][0] if x in dico_trouves[(compteur, liste_expr)][1]]
-                                
-                                ## recherche si les occurrences se trouvent à des positions de A-minor
-                                
-                                aminors = [[],[]]
-                                non_aminors = [[],[]]
-                                nb_trouve_aminor = [0,0]
-                                nb_trouve_non_aminor = [0,0]
-                                
-                               
-                                for i in range(len(dico_trouves[(compteur, liste_expr)])) :
-                                    compte_occ = 0
-                                    c = 0
-                                    for cle_dico in dico_trouves[(compteur, liste_expr)][i] :
+                                            dico_trouves[(compteur, liste_expr, c)][1][elt].append(pos[0])
+                                            print(pos) 
                                         
-            #                             print(c)
-            #                             print(cle_dico)
-                                        #print(dico_redondance)
-                                        ancien_nb_trouve = nb_trouve_aminor[i]
-                                        liste_a_chercher = []
-                                        trouve = False
-                                        for cle in dico_redondance :
-                                            if cle_dico == cle or cle_dico in cle :
-                                                liste_a_chercher.append(dico_redondance[cle])
-                                                trouve = True
-                                            elif cle_dico in dico_redondance[cle] :
-                                                liste_a_chercher.append(dico_redondance[cle])
-                                                trouve = True
-                                        if not trouve :
-                                            liste_a_chercher.append([cle_dico])
+                                        ## paires d'occurrences dans la même molécule
+                                        for occ in dico_trouves[(compteur, liste_expr, c)][0][elt] :
+                                            for occ2 in dico_trouves[(compteur, liste_expr, c)][1][elt] :
+                                                dico_couples[(compteur, liste_expr, c)][elt].append([occ, occ2])
                                         
-            #                             print("liste a chercher")
-            #                             print(len(liste_a_chercher))
+                                        dico_trouves[(compteur, liste_expr, c)][0][elt] = []
+                                        dico_trouves[(compteur, liste_expr, c)][1][elt] = []
                                         
-                                        for liste in liste_a_chercher : 
-                                            nb_trouve_temp = 0
-                                            aminors_temp = []
-                                            existe = False
-                                            for elt_l in liste :
-                                                if cle_dico != elt_l : 
-                                                    
-                                                    if elt_l in graphes.keys() :
-                                                        seq = ""
-                                                        for j in range(1, graphes[elt_l].number_of_nodes()+1) :
-                                                            seq += graphes[elt_l].nodes[j]["nt"]
-                                                        
-                                                        #print(seq)
-                                                        if i == 0 :
-                                                            match_it = re.finditer(liste_seq_13[liste_expr], seq)
-                                                        else :
-                                                            match_it = re.finditer(liste_seq_24[liste_expr], seq)
-                                                        
-                                                        #print(match_it_13)
-                                                        #print(match_it_24)
-                                                        
-                                                        liste_match = []
-                                                        
-                                                        for m in match_it :
-                                                            pos = m.span()
-                                                            liste_match.append(pos[0])
-                                                            #print(pos)
-                                                              
-                                                    
-                                                    
-                                                        for aminor in liste_aminor :
-                                #                                 print(aminor)
-                                #                                 print(occ)
-                                                                if elt_l[0] == aminor[0].upper() :
-                                                                         
-                                                                        if elt_l[1] == aminor[1][i][0]  :
-                                                                            
-                                                                            
-                                                                                for occ2 in liste_match : 
-                                                                                    if occ2 >= aminor[1][i][1] - 5 and occ2 <= aminor[1][i][1] :
-                                                                                        if i == 0 :
-                                                                                            if (elt_l, occ2, liste_seq_13[liste_expr]) not in aminors_temp :
-                                                                                                nb_trouve_temp += 1
-                                                                                                aminors_temp.append((elt_l, occ2,liste_seq_13[liste_expr]))
-                                                                                        else :
-                                                                                            if (elt_l, occ2, liste_seq_24[liste_expr]) not in aminors_temp :
-                                                                                                nb_trouve_temp += 1
-                                                                                                aminors_temp.append((elt_l, occ2,liste_seq_24[liste_expr]))
-                                
-                                                                                                
-                                                                                        existe = True
-                                                else :
-                                                        
-                                                        for aminor in liste_aminor :
-                            #                                 print(aminor)
-                            #                                 print(occ)
-                                                            if elt_l[0] == aminor[0].upper() :
-                                                                     
-                                                                    if elt_l[1] == aminor[1][i][0]  :
-                                                                        
-                                                                                for occ2 in dico_trouves[(compteur, liste_expr)][i][cle_dico] : 
-                                                                                    if occ2 >= aminor[1][i][1] - 5 and occ2 <= aminor[1][i][1] :
-                                                                                   
-                                                                                        
-                                                                                        if i == 0 :
-                                                                                            if (elt_l, occ2, liste_seq_13[liste_expr]) not in aminors_temp :
-                                                                                                nb_trouve_temp += 1
-                                                                                                aminors_temp.append((elt_l, occ2,liste_seq_13[liste_expr]))
-                                                                                        else :
-                                                                                            if (elt_l, occ2, liste_seq_24[liste_expr]) not in aminors_temp :
-                                                                                                nb_trouve_temp += 1
-                                                                                                aminors_temp.append((elt_l, occ2,liste_seq_24[liste_expr]))
-                            
-                                                                                                
-                                                                                        existe = True
-                                                if existe :
-                                                    nb_trouve_aminor[i] += nb_trouve_temp
-                                                    aminors[i].extend(aminors_temp)
-                                                    break
-                                                
-                                        if nb_trouve_aminor[i] == ancien_nb_trouve :
-                                            for occ1 in dico_trouves[(compteur, liste_expr)][i][cle_dico] :
-                                                if i == 0 :
-                                                    if (cle_dico, occ1, liste_seq_13[liste_expr]) not in non_aminors[i] :
-                                                        non_aminors[i].append((cle_dico, occ1, liste_seq_13[liste_expr]))
-                                                else :
-                                                    if (cle_dico, occ1, liste_seq_24[liste_expr]) not in non_aminors[i] :
-                                                        non_aminors[i].append((cle_dico, occ1, liste_seq_24[liste_expr]))
-                                        compte_occ += len(dico_trouves[(compteur, liste_expr)][i][cle_dico])
-                                        c += 1
-                                   
-                                    nb_trouve_non_aminor[i] = compte_occ - nb_trouve_aminor[i] 
-                                
-                                print(nb_trouve_aminor)
-                                print(nb_trouve_non_aminor)
-                                print(aminors[1])
-                                print(non_aminors[1])  
-                                
-                                
-                                ## recherche les occurrences dont les 2 séquences apparaissent dans la même molécule
-                                
-                                aminors_temp = list(aminors)
-                                                
-                                commun_aminor = []
-                                for cle1 in aminors[0] :
-                                    for cle2 in aminors[1] :
-                                            if cle1[0] == cle2[0] :
-                                                commun_aminor.append((cle1[0], cle1[1], cle2[1]))
-                                                aminors_temp[0].remove(cle1)
-                                                aminors_temp[1].remove(cle2)
-                                                
-                                
-                                non_aminors_temp = list(non_aminors)
-                                non_aminors_temp[0].extend(aminors_temp[0])
-                                non_aminors_temp[1].extend(aminors_temp[1])
-                                
-                                print(non_aminors[1])
-                                print(non_aminors_temp[1])
-                                
-                                commun_non_aminor = []
-                                for cle1 in non_aminors_temp[0] :
-                                    for cle2 in non_aminors_temp[1] :
-                                            if cle1[0] == cle2[0] :
-                                                commun_non_aminor.append((cle1[0], cle1[1], cle2[1]))   
-                                
-                                print(len(commun_aminor))
-                                print(len(commun_non_aminor))
-                                
-                                print(commun_non_aminor)
-                                
-                                ## recherche quelle occurrence a la même structure (le même graphe) mais bon pas terrible, il faudrait au moins enlever le A-minor
-                                
-                                nb_struct_idem_aminor = 0                 
-                                for elt in commun_aminor :
-                                    print(elt)
-                                    c = 1
-                                    
-    #                                 chaine_1 = [chaines_1[3], chaines_1[4]]
-    #                                 chaine_2 = [chaines_2[3], chaines_2[4]]
-                                    for noeud in chaines_1 :
-                                        idem = True
-                                        if noeud != -1 :
-                                            print(noeud)
-                                            
-                                            for voisin in graphe_commun_global[noeud] :
-                                                print(voisin)
-                                                
-                                                for edge in graphe_commun_global[noeud][voisin] :
-                                                    print(graphe_commun_global[noeud][voisin][edge]["label"])
-                                                    print("voisins")
-                                                    ok = False
-                                                    for voisin_2 in graphes[elt[0]][elt[1]+c] :
-                                                        print(voisin_2)
-                                                        print(graphes[elt[0]][elt[1]+c][voisin_2]["label"])
-                                                        if graphe_commun_global[noeud][voisin][edge]["label"] == graphes[elt[0]][elt[1]+c][voisin_2]["label"] :
-                                                            ok = True
-                                                    if not ok :
-                                                        idem = False
-                                            print(idem)
-                                        if not idem :
-                                            break
-                                        c += 1
-                                    
-                                    c = 1
-                                    if idem :
-                                        for noeud in chaines_2 :
-                                            print(noeud)
-                                            idem = True
-                                            if noeud != -1 :
-                                                for voisin in graphe_commun_global[noeud] :
-                                                    print(voisin)
-                                                    for edge in graphe_commun_global[noeud][voisin] :
-                                                        ok = False
-                                                        for voisin_2 in graphes[elt[0]][elt[2]+c] :
-                                                            if graphe_commun_global[noeud][voisin][edge]["label"] == graphes[elt[0]][elt[2]+c][voisin_2]["label"] :
-                                                                ok = True
-                                                        if not ok :
-                                                            idem = False
-                                            if not idem :
-                                                break
-                                            c += 1
-                                            
+                                        ##recherche d'A-minor
                                         
-                                    print(idem)
-                                    if idem :
-                                        nb_struct_idem_aminor += 1
+                                        for aminor in liste_aminor :
+                                            if elt[0] == aminor[0].upper() :
+                                                     
+                                                if elt[1] == aminor[1][0][0] and elt[1] == aminor[1][1][0]  :
+                                                            for occ in dico_couples[(compteur, liste_expr, c)][elt] : 
+                                                                print(occ)
+                                                                if (occ[0] >= aminor[1][0][1] - 5 and occ[0] <= aminor[1][0][1]) or (occ[1] >= aminor[1][1][1] - 5 and occ[1] <= aminor[1][1][1]) :
+                                                                    if (occ[0] >= aminor[1][0][1] - 5 and occ[0] <= aminor[1][0][1]) :
+                                                                        if (occ[0], True) not in dico_trouves[(compteur, liste_expr, c)][0][elt] :
+                                                                            dico_trouves[(compteur, liste_expr, c)][0][elt].append((occ[0], True))
+                                                                    else :
+                                                                        if (occ[0], False) not in dico_trouves[(compteur, liste_expr, c)][0][elt] :
+                                                                            dico_trouves[(compteur, liste_expr, c)][0][elt].append((occ[0], False))
+                                                                    if (occ[1] >= aminor[1][1][1] - 5 and occ[1] <= aminor[1][1][1]) :
+                                                                        if (occ[1], True) not in dico_trouves[(compteur, liste_expr, c)][1][elt] :
+                                                                            dico_trouves[(compteur, liste_expr, c)][1][elt].append((occ[1], True))
+                                                                    else :
+                                                                        if (occ[1], False) not in dico_trouves[(compteur, liste_expr, c)][1][elt] :
+                                                                            dico_trouves[(compteur, liste_expr, c)][1][elt].append((occ[1], False))
+                                                                    if (occ[0] >= aminor[1][0][1] - 5 and occ[0] <= aminor[1][0][1]) and (occ[1] >= aminor[1][1][1] - 5 and occ[1] <= aminor[1][1][1]) :
+                                                                        occ.append(True)
+                                                                    else :
+                                                                        occ.append(False)
+                                                                    
+        
                                         
-                                nb_struct_idem_non_aminor = 0                 
-                                for elt in commun_non_aminor :
-                                    print(elt)
-                                    c = 1
-                                    
-    #                                 chaine_1 = [chaines_1[3], chaines_1[4]]
-    #                                 chaine_2 = [chaines_2[3], chaines_2[4]]
-                                    for noeud in chaines_1 :
-                                        idem = True
-                                        if noeud != -1 :
-                                            print(noeud)
-                                            
-                                            for voisin in graphe_commun_global[noeud] :
-                                                print(voisin)
-                                                
-                                                for edge in graphe_commun_global[noeud][voisin] :
-                                                    print(graphe_commun_global[noeud][voisin][edge]["label"])
-                                                    print("voisins")
-                                                    ok = False
-                                                    for voisin_2 in graphes[elt[0]][elt[1]+c] :
-                                                        print(voisin_2)
-                                                        print(graphes[elt[0]][elt[1]+c][voisin_2]["label"])
-                                                        if graphe_commun_global[noeud][voisin][edge]["label"] == graphes[elt[0]][elt[1]+c][voisin_2]["label"] :
-                                                            ok = True
-                                                    if not ok :
-                                                        idem = False
-                                            print(idem)
-                                        if not idem :
-                                            break
-                                        c += 1
-                                    
-                                    c = 1
-                                    if idem :
-                                        for noeud in chaines_2 :
-                                            print(noeud)
-                                            idem = True
-                                            if noeud != -1 :
-                                                for voisin in graphe_commun_global[noeud] :
-                                                    print(voisin)
-                                                    for edge in graphe_commun_global[noeud][voisin] :
-                                                        ok = False
-                                                        for voisin_2 in graphes[elt[0]][elt[2]+c] :
-                                                            if graphe_commun_global[noeud][voisin][edge]["label"] == graphes[elt[0]][elt[2]+c][voisin_2]["label"] :
-                                                                ok = True
-                                                        if not ok :
-                                                            idem = False
-                                            if not idem :
-                                                break
-                                            c += 1
-                                            
                                         
-                                    print(idem)
-                                    if idem :
-                                        nb_struct_idem_non_aminor += 1
+                                        
+                                        
+                                cle_max = -1
+                                nb_tot_max = -1
+                                nb_aminor_max = -1
+                                
+                                for cle in dico_couples[(compteur, liste_expr, c)] :
+                                    nb_aminor = 0
+                                    print(cle)
+                                    for occ in dico_couples[(compteur, liste_expr, c)][cle] :
+                                        if len(occ) == 3 and occ[2] == True :
+                                            nb_aminor += 1 
+                                    if nb_aminor > nb_aminor_max or (nb_aminor == nb_aminor_max and len(dico_couples[(compteur, liste_expr, c)][cle]) > nb_tot_max)  :
+                                        nb_tot_max = len(dico_couples[(compteur, liste_expr, c)][cle])
+                                        cle_max = cle
+                                        nb_aminor_max = nb_aminor
+                                
+                                nb_aminor_1 = 0
+                                nb_aminor_2 = 0
+                                for occ in dico_trouves[(compteur, liste_expr, c)][0][cle_max] :
+                                    if occ[1] == True :
+                                        nb_aminor_1 += 1
+                                        
+                                for occ in dico_trouves[(compteur, liste_expr, c)][1][cle_max] :
+                                    if occ[1] == True :
+                                        nb_aminor_2 += 1
+                                
+                                nb_aminor_1_tot += nb_aminor_1
+                                nb_aminor_2_tot += nb_aminor_2
+                                nb_non_aminor_1_tot += len( dico_trouves[(compteur, liste_expr, c)][0][cle_max]) - nb_aminor_1
+                                nb_non_aminor_2_tot += len( dico_trouves[(compteur, liste_expr, c)][1][cle_max]) - nb_aminor_2
+                                nb_aminor_tot += nb_aminor_max
+                                nb_non_aminor_tot += nb_tot_max - nb_aminor_max
                                     
                                     
-                                    
-                                csvwriter.writerow([compteur, liste_seq_13[liste_expr], liste_seq_24[liste_expr], cluster, nb_trouve_non_aminor[0], nb_trouve_non_aminor[1], nb_trouve_aminor[0], nb_trouve_aminor[1], non_aminors, aminors, len(commun_non_aminor), len(commun_aminor), nb_struct_idem_non_aminor, nb_struct_idem_aminor])
-    
-    #                         noeuds = []
-    #                         for j in range(elt[1], elt[1]+9) :
-    #                             noeuds.append(j)
-    #                             
-    #                         for j in range(elt[2], elt[2]+9) :
-    #                             noeuds.append(j)
-                            
-    #                         voisins = []
-    #                         a_ajouter = []
-    #                         for noeud in noeuds :
-    #                             for voisin in graphes[elt[0]][noeud] :
-    #                                 if voisin not in noeuds and voisin not in a_ajouter :
-    #                                     a_ajouter.append(voisin)
-    #                                 if graphes[elt[0]].edges[noeud,voisin]["label"] != 'B53' :
-    #                                     voisins.append(voisin)
-    #                         for e in a_ajouter :
-    #                             noeuds.append(e)
-    #                         
-    #                         sousgraphe_frozen = graphes[elt[0]].subgraph(noeuds)
-    #                         sousgraphe = nx.DiGraph(sousgraphe_frozen)
-    #                         
-    #                         a_enlever = []
-    #                         for u,v in sousgraphe.edges() :
-    #                             if u in voisins and v in voisins :
-    #                                 a_enlever.append((u,v))
-    #                         
-    #                         for e in a_enlever :
-    #                             sousgraphe.remove_edge(e[0],e[1])
-    #                             
-    #                             
-    #                         for u,v, data in sousgraphe.edges(data=True) :
-    #                             print(u,v,data)
-    #                         
-    #                         print("roupoulou")
-    #                         for u,v, data in graphe_commun_global.edges(data=True) :
-    #                             print(u,v,data)
-    #                         
-    #                         GM = isomorphism.DiGraphMatcher(graphe_commun_global, sousgraphe, edge_match=edge_match)
-    #                         iso = GM.is_isomorphic()
-                            
-    #                         print(iso)
-                           
-                except :
-                    print("rate pas grave")              
+                                
+                                
+                                c += 1
+                            csvwriter.writerow([compteur, liste_seq_13[liste_expr], liste_seq_24[liste_expr], cluster, nb_non_aminor_1_tot, nb_non_aminor_2_tot, nb_aminor_1_tot, nb_aminor_2_tot, nb_non_aminor_tot, nb_aminor_tot])
+
+#                 except :
+#                     print("rate pas grave")              
                             
                         #exit()
             compteur += 1
@@ -1796,33 +1892,33 @@ def recherche_struct(clusters, liste_non_redondant, graphes, liste_aminor):
     '''
     
     with open("Resultats_sequences/res_csv_struct_2_0.75_suite.csv", 'a', newline="") as fichier_csv :
-        csvwriter = csv.writer(fichier_csv)
-        csvwriter.writerow(["Structure", "Position chaine 1", "Position chaine 2", "Num cluster", "Cluster", "Positions ch1", "Positions ch2", "Nombre d'aretes trouvees", "Nombre d'aretes trouves dans la chaine1", "Nombre d'aretes trouves dans la chaine 2", "Nombre d'aretes au total"])
+                csvwriter = csv.writer(fichier_csv)
+                csvwriter.writerow(["Structure", "Position chaine 1", "Position chaine 2", "Num cluster", "Cluster", "Positions ch1", "Positions ch2", "Nombre d'aretes trouvees", "Nombre d'aretes trouves dans la chaine1", "Nombre d'aretes trouves dans la chaine 2", "Nombre d'aretes au total"])
         
-        with open("Resultats_sequences/res_csv_struct_aminor_2_0.75_suite.csv", 'a', newline="") as fichier_csv_aminor :
-            csvwriter_aminor = csv.writer(fichier_csv_aminor)
-            csvwriter_aminor.writerow(["Structure", "Position chaine 1", "Position chaine 2", "Num cluster", "Cluster", "Positions ch1", "Positions ch2", "Nombre d'aretes trouvees", "Nombre d'aretes trouves dans la chaine1", "Nombre d'aretes trouves dans la chaine 2", "Nombre d'aretes au total"])
-
-            with open("Resultats_sequences/res_csv_struct_semi_aminor_2_0.75_suite.csv", 'a', newline="") as fichier_csv_aminor :
-                csvwriter_semi_aminor = csv.writer(fichier_csv_aminor)
-                csvwriter_semi_aminor.writerow(["Structure", "Position chaine 1", "Position chaine 2", "Num cluster", "Cluster", "Positions ch1", "Positions ch2", "Nombre d'aretes trouvees", "Nombre d'aretes trouves dans la chaine1", "Nombre d'aretes trouves dans la chaine 2", "Nombre d'aretes au total"])
+#         with open("Resultats_sequences/res_csv_struct_aminor_2_0.75_suite.csv", 'a', newline="") as fichier_csv_aminor :
+#             csvwriter_aminor = csv.writer(fichier_csv_aminor)
+#             csvwriter_aminor.writerow(["Structure", "Position chaine 1", "Position chaine 2", "Num cluster", "Cluster", "Positions ch1", "Positions ch2", "Nombre d'aretes trouvees", "Nombre d'aretes trouves dans la chaine1", "Nombre d'aretes trouves dans la chaine 2", "Nombre d'aretes au total"])
+# 
+#             with open("Resultats_sequences/res_csv_struct_semi_aminor_2_0.75_suite.csv", 'a', newline="") as fichier_csv_aminor :
+#                 csvwriter_semi_aminor = csv.writer(fichier_csv_aminor)
+#                 csvwriter_semi_aminor.writerow(["Structure", "Position chaine 1", "Position chaine 2", "Num cluster", "Cluster", "Positions ch1", "Positions ch2", "Nombre d'aretes trouvees", "Nombre d'aretes trouves dans la chaine1", "Nombre d'aretes trouves dans la chaine 2", "Nombre d'aretes au total"])
                 
                 
-                with open("Resultats_sequences/dico_recherche_struct.pickle", 'rb') as fichier_pickle_1 : 
-                    mon_depickler = pickle.Unpickler(fichier_pickle_1)
-                    dico_recherche_struct = mon_depickler.load()
-                    
-                with open("Resultats_sequences/dico_recherche_struct_aminor.pickle", 'rb') as fichier_pickle_2 : 
-                    mon_depickler = pickle.Unpickler(fichier_pickle_2)
-                    dico_recherche_struct_aminor = mon_depickler.load()
-                    
-                with open("Resultats_sequences/dico_recherche_struct_semi_aminor.pickle", 'rb') as fichier_pickle_3 : 
-                    mon_depickler = pickle.Unpickler(fichier_pickle_3)
-                    dico_recherche_struct_semi_aminor = mon_depickler.load()
+#                 with open("Resultats_sequences/dico_recherche_struct.pickle", 'rb') as fichier_pickle_1 : 
+#                     mon_depickler = pickle.Unpickler(fichier_pickle_1)
+#                     dico_recherche_struct = mon_depickler.load()
+#                     
+#                 with open("Resultats_sequences/dico_recherche_struct_aminor.pickle", 'rb') as fichier_pickle_2 : 
+#                     mon_depickler = pickle.Unpickler(fichier_pickle_2)
+#                     dico_recherche_struct_aminor = mon_depickler.load()
+#                     
+#                 with open("Resultats_sequences/dico_recherche_struct_semi_aminor.pickle", 'rb') as fichier_pickle_3 : 
+#                     mon_depickler = pickle.Unpickler(fichier_pickle_3)
+#                     dico_recherche_struct_semi_aminor = mon_depickler.load()
                 
-#                 dico_recherche_struct = {}
-#                 dico_recherche_struct_aminor = {}
-#                 dico_recherche_struct_semi_aminor = {}
+                dico_recherche_struct = {}
+                dico_recherche_struct_aminor = {}
+                dico_recherche_struct_semi_aminor = {}
                 compteur = 1
                 liste = []
                 liste_pas_bon = []
@@ -1830,7 +1926,7 @@ def recherche_struct(clusters, liste_non_redondant, graphes, liste_aminor):
                 liste_chaine_commune = []
                 for cluster in clusters :
                     print(compteur)
-                    if len(cluster) > 2 and compteur >= 78 :
+                    if len(cluster) > 2  :
                         print(len(cluster))
                         print(cluster)
                         
@@ -2068,19 +2164,19 @@ def recherche_struct(clusters, liste_non_redondant, graphes, liste_aminor):
                             ok = False
                             compteur_elt = 0
                             for elt in liste_non_redondant :
-                                if graphes[elt].number_of_nodes() >= 16 and ((compteur == 78 and compteur_elt >= 26) or compteur > 78) : 
+                                if graphes[elt].number_of_nodes() >= 16 : 
                                 
                                     
-                                        liste_pos_aminor_1 = []
-                                        liste_pos_aminor_2 = []
-                                        
-                                        for aminor in liste_aminor :
-                                            if elt[0] == aminor[0].upper() and elt[1] == aminor[1][0][0] :
-                                                liste_pos_aminor_1.append(aminor[1][0][1] - 3)
-                                                liste_pos_aminor_2.append(aminor[1][1][1] - 3)
-                                        
-                                        print(liste_pos_aminor_1)
-                                        print(liste_pos_aminor_2)
+#                                         liste_pos_aminor_1 = []
+#                                         liste_pos_aminor_2 = []
+#                                         
+#                                         for aminor in liste_aminor :
+#                                             if elt[0] == aminor[0].upper() and elt[1] == aminor[1][0][0] :
+#                                                 liste_pos_aminor_1.append(aminor[1][0][1] - 3)
+#                                                 liste_pos_aminor_2.append(aminor[1][1][1] - 3)
+#                                         
+#                                         print(liste_pos_aminor_1)
+#                                         print(liste_pos_aminor_2)
                                         
                                         dico_struct_1 = {}
                                         dico_struct_2 = {}
@@ -2090,15 +2186,15 @@ def recherche_struct(clusters, liste_non_redondant, graphes, liste_aminor):
                                             chaine_new_2 = chaines_1
                                             nb_aretes_ch1_new = nb_aretes_ch2
                                             nb_aretes_ch2_new = nb_aretes_ch1
-                                            liste_pos_aminor_1_new = liste_pos_aminor_2
-                                            liste_pos_aminor_2_new = liste_pos_aminor_1
+                                            #liste_pos_aminor_1_new = liste_pos_aminor_2
+                                            #liste_pos_aminor_2_new = liste_pos_aminor_1
                                         else :
                                             chaine_new_1 = chaines_1
                                             chaine_new_2 = chaines_2
                                             nb_aretes_ch1_new = nb_aretes_ch1
                                             nb_aretes_ch2_new = nb_aretes_ch2
-                                            liste_pos_aminor_1_new = liste_pos_aminor_1
-                                            liste_pos_aminor_2_new = liste_pos_aminor_2
+                                            #liste_pos_aminor_1_new = liste_pos_aminor_1
+                                            #liste_pos_aminor_2_new = liste_pos_aminor_2
                                         
                                         for i in range(1, graphes[elt].number_of_nodes()-8) :
                                             #if compteur == 4  and elt == ('1VQP', '0'):
@@ -2164,7 +2260,7 @@ def recherche_struct(clusters, liste_non_redondant, graphes, liste_aminor):
                                                 print("i=%d"%i)
                                                 print(0.75*nb_aretes - nb_aretes_ch2_new)
                                                 ## on ne teste le i que s'il est possible d'avoir une proportion totale supérieure à 0.75
-                                                if ((compteur == 78 and compteur_elt == 26 and i >= 2099) or compteur > 78 or compteur_elt > 26) and len(dico_struct_1[(i, c1)][1]) >= 0.75*nb_aretes - nb_aretes_ch2_new - nb_aretes_inter :
+                                                if len(dico_struct_1[(i, c1)][1]) >= 1.0*nb_aretes - nb_aretes_ch2_new - nb_aretes_inter :
                                                     c2 = 0
                                                     for ch2 in chaine_new_2 :
                                                             print(ch2)
@@ -2178,13 +2274,13 @@ def recherche_struct(clusters, liste_non_redondant, graphes, liste_aminor):
                                                                     print(compteur)
                                                                     print("i=%d"%i)
                                                                     print("k=%d"%k)
-                                                                    print(i in liste_pos_aminor_1)
-                                                                    print(k in liste_pos_aminor_2)
+                                                                    #print(i in liste_pos_aminor_1)
+                                                                    #print(k in liste_pos_aminor_2)
                                                                     print(chaines_1)
                                                                     
                                                                 #if k == pos2 :
                                                                     ## on ne teste le k que s'il est possible d'avoir une proportion totale supérieure à 0.75
-                                                                    if ((compteur == 78 and compteur_elt == 26 and i == 2099 and k > 719) or compteur > 78 or compteur_elt > 26 or i > 2099) and (k > i+8 or k < i-8) and len(dico_struct_2[(k, c2)][1]) >= 0.75*nb_aretes - nb_aretes_ch1_new - nb_aretes_inter :
+                                                                    if (k > i+8 or k < i-8) and len(dico_struct_2[(k, c2)][1]) >= 1.0*nb_aretes - nb_aretes_ch1_new - nb_aretes_inter :
                                                                         print(0.75*nb_aretes - nb_aretes_ch1_new)
                                                                         
                                                                         aretes_communes = list(dico_struct_1[(i, c1)][1])
@@ -2214,17 +2310,17 @@ def recherche_struct(clusters, liste_non_redondant, graphes, liste_aminor):
                                                                             print(nb_tot)
                                                                             #return
                                                                         print(nb_tot)
-                                                                        if nb_tot >= 0.75*nb_aretes : 
-                                                                            if i in liste_pos_aminor_1_new and k in liste_pos_aminor_2_new :
-                                                                                #print("est_la")
-                                                                                #return
-                                                                                csvwriter_aminor.writerow([elt, i, k, compteur, cluster, ch1, ch2, nb_tot, len(aretes_communes_1), len(aretes_communes_2), nb_aretes, change_sens])
-                                                                                dico_recherche_struct_aminor.update({(elt, i, k, compteur, str(ch1), str(ch2)) : (aretes_communes, dico_couple)})
-                                                                            elif i in liste_pos_aminor_1_new or k in liste_pos_aminor_2_new :
-                                                                                csvwriter_semi_aminor.writerow([elt, i, k, compteur, cluster, ch1, ch2, nb_tot, len(aretes_communes_1), len(aretes_communes_2), nb_aretes, change_sens])
-                                                                                dico_recherche_struct_semi_aminor.update({(elt, i, k, compteur, str(ch1), str(ch2)) : (aretes_communes, dico_couple)})
-    
-                                                                            else :
+                                                                        if nb_tot >= 1.0*nb_aretes : 
+#                                                                             if i in liste_pos_aminor_1_new and k in liste_pos_aminor_2_new :
+#                                                                                 #print("est_la")
+#                                                                                 #return
+#                                                                                 csvwriter_aminor.writerow([elt, i, k, compteur, cluster, ch1, ch2, nb_tot, len(aretes_communes_1), len(aretes_communes_2), nb_aretes, change_sens])
+#                                                                                 dico_recherche_struct_aminor.update({(elt, i, k, compteur, str(ch1), str(ch2)) : (aretes_communes, dico_couple)})
+#                                                                             elif i in liste_pos_aminor_1_new or k in liste_pos_aminor_2_new :
+#                                                                                 csvwriter_semi_aminor.writerow([elt, i, k, compteur, cluster, ch1, ch2, nb_tot, len(aretes_communes_1), len(aretes_communes_2), nb_aretes, change_sens])
+#                                                                                 dico_recherche_struct_semi_aminor.update({(elt, i, k, compteur, str(ch1), str(ch2)) : (aretes_communes, dico_couple)})
+#     
+#                                                                             else :
                                                                                 csvwriter.writerow([elt, i, k, compteur, cluster, ch1, ch2, nb_tot, len(aretes_communes_1), len(aretes_communes_2), nb_aretes, change_sens])
                                                                                 dico_recherche_struct.update({(elt, i, k, compteur, str(ch1), str(ch2)) : (aretes_communes, dico_couple)})
                     #                                                     if nb_tot == nb_aretes : 
@@ -2295,50 +2391,86 @@ def analyse_resultats_struct(liste_aminor, liste_nom_graphes_aminor):
     '''
     
     
-    with open("recup_data/Resultats_sequences/res_csv_struct_2_0.75_suite.csv", 'r', newline="") as fichier_csv :
+    with open("Resultats_sequences/res_csv_struct_2_0.75_suite.csv", 'r', newline="") as fichier_csv :
         csvreader = csv.reader(fichier_csv)
+    
+        
         dico = {}
         
         compteur = 0
-        
+        new_row_3 = -1
         for row in csvreader :
-            if row[0] != "Structure" and (row[0].split(",")[0][2:len(row[0].split(",")[0])-1], row[0].split(",")[1][2:len(row[0].split(",")[1])-2]) in liste_nom_graphes_aminor :
+            #if row[0] != "Structure" and (row[0].split(",")[0][2:len(row[0].split(",")[0])-1], row[0].split(",")[1][2:len(row[0].split(",")[1])-2]) in liste_nom_graphes_aminor :
+            if row[0] != "Structure" :
                 ## ici on ne récupère que les occurrences qui ont une proportion de 1
                 if int(row[7])/float(row[10]) == 1.0 :
                     print(row[3])
                     if row[3] not in dico :
+                        if new_row_3 != -1 :
+                            if "dico_cluster_%s_que_1_2.pickle"%new_row_3 in os.listdir("Resultats_sequences") :
+                                with open("recup_data/Resultats_sequences/dico_cluster_%s_que_1_2.pickle"%new_row_3, 'rb') as fichier_pickle :
+                                    mon_depickler = pickle.Unpickler(fichier_pickle)
+                                    dico_cluster = mon_depickler.load()
+                                    
+                                    dico[new_row_3].extend(dico_cluster)
+                                
+                            with open("Resultats_sequences/dico_cluster_%s_que_1_2.pickle"%new_row_3, 'wb') as fichier_pickle :
+                                mon_pickler = pickle.Pickler(fichier_pickle)
+                                mon_pickler.dump(dico[new_row_3])
                         dico.update({row[3] : []})
+                        new_row_3 = row[3]
                         
                     vrai_aminor = False
                     aminor_1 = False
                     aminor_2 = False
                     ## dans le cas où on peut avoir des A-minor (struct A-minor), on regarde si les deux positions appartiennent au même A-minor
-#                     for elt in liste_aminor :
-#                         #print(row[0].split(",")[0][2:len(row[0].split(",")[0])-1])
-#                         #print(row[0].split(",")[1][2:len(row[0].split(",")[1])-2])
-#                         #exit()
-#                           
-#                         if row[0].split(",")[0][2:len(row[0].split(",")[0])-1] == elt[0].upper() :
-#                             #print("ahaa")
-#                             #print(row[1])
-#                             #print(elt[1][0][1] - 3)
-#                             if row[11] == 'False' :
-#                                 if row[0].split(",")[1][2:len(row[0].split(",")[1])-2] == elt[1][0][0] :
-#                                     if int(row[1]) == elt[1][0][1] - 3  :
-#                                         aminor_1 = True
-#                                         #break
-#                                     if int(row[2]) == elt[1][1][1] -3 :
-#                                         aminor_2 = True
-#                             else :
-#                                 if row[0].split(",")[1][2:len(row[0].split(",")[1])-2] == elt[1][0][0] :
-#                                     if int(row[1]) == elt[1][1][1] - 3 :
-#                                         aminor_1 = True
-#                                     if int(row[2]) == elt[1][0][1] -3 :
-#                                         aminor_2 = True
-#                                     #vrai_aminor = True
-#                                     #break
-#                             if aminor_1 and aminor_2 :
-#                                 break
+                    for cle in liste_aminor :
+                        #print(row[0].split(",")[0][2:len(row[0].split(",")[0])-1])
+                        #print(row[0].split(",")[1][2:len(row[0].split(",")[1])-2])
+                        #exit()
+                        
+                        if row[0].split(",")[0][2:len(row[0].split(",")[0])-1] == cle.upper() :
+                            #print(dico_aminor[cle])
+                            #print(cle)
+                            #print(row[0])
+                            for elt in liste_aminor[cle] :
+                                #print("ahaa")
+                                #print(row[1])
+                                #print(elt[1][0][1] - 3)
+                                #print(elt)
+                                #print(elt[0][0])
+                                #print(elt[0][1])
+                                #print(elt[1][1])
+                                if row[11] == 'False' :
+                                    if row[0].split(",")[1][2:len(row[0].split(",")[1])-2] == elt[0][0] :
+                                        if int(row[1]) == elt[0][1] - 3 or int(row[2]) == elt[1][1] -3  :
+                                            if int(row[1]) == elt[0][1] - 3 and int(row[2]) == elt[1][1] -3 :
+                                                vrai_aminor = True
+                                                aminor_1 = True
+                                                aminor_2 = True
+                                                break
+                                            elif int(row[1]) == elt[0][1] - 3 :
+                                                aminor_1 = True
+                                            elif int(row[2]) == elt[1][1] -3 :
+                                                aminor_2 = True
+                                            #break
+                                else :
+                                    if row[0].split(",")[1][2:len(row[0].split(",")[1])-2] == elt[0][0] :
+                                        if int(row[1]) == elt[1][1] - 3 or int(row[2]) == elt[0][1] -3 :
+                                            if int(row[1]) == elt[1][1] - 3 and int(row[2]) == elt[0][1] -3 :
+                                                vrai_aminor = True
+                                                aminor_1 = True
+                                                aminor_2 = True
+                                                break
+                                            elif int(row[1]) == elt[1][1] - 3 :
+                                                aminor_1 = True
+                                            elif int(row[2]) == elt[0][1] -3 :
+                                                aminor_2 = True
+                                        #vrai_aminor = True
+                                        #break
+                                if aminor_1 and aminor_2 :
+                                    break
+                                #exit()
                     ## si on a échangé les brins 1 et 2
                     if row[11] == 'False' :       
                         item = (row[0], row[1], row[2], int(row[7])/float(row[10]), vrai_aminor, aminor_1, aminor_2)
@@ -2355,21 +2487,22 @@ def analyse_resultats_struct(liste_aminor, liste_nom_graphes_aminor):
                         dico[row[3]].append(item)
                 
             compteur += 1
+            print(compteur)
             #if compteur == 100 :
             #    print(dico)
             #    break
         #print(dico['3'])
-        for cle in dico :
-            if "dico_cluster_%s_que_1.pickle"%cle in os.listdir("recup_data/Resultats_sequences") :
-                with open("recup_data/Resultats_sequences/dico_cluster_%s_que_1.pickle"%cle, 'rb') as fichier_pickle :
+        
+        if "dico_cluster_%s_que_1_2.pickle"%new_row_3 in os.listdir("Resultats_sequences") :
+                with open("recup_data/Resultats_sequences/dico_cluster_%s_que_1_2.pickle"%new_row_3, 'rb') as fichier_pickle :
                     mon_depickler = pickle.Unpickler(fichier_pickle)
                     dico_cluster = mon_depickler.load()
                     
-                    dico[cle].extend(dico_cluster)
+                    dico[new_row_3].extend(dico_cluster)
                 
-            with open("recup_data/Resultats_sequences/dico_cluster_%s_que_1.pickle"%cle, 'wb') as fichier_pickle :
+        with open("Resultats_sequences/dico_cluster_%s_que_1_2.pickle"%new_row_3, 'wb') as fichier_pickle :
                 mon_pickler = pickle.Pickler(fichier_pickle)
-                mon_pickler.dump(dico[cle])
+                mon_pickler.dump(dico[new_row_3])
         
 
 
@@ -2531,23 +2664,73 @@ def sequence_apres_structure(cluster, dico_struct_cluster, graphes):
  
 if __name__ == '__main__' :
     
-#     with open("/media/coline/Maxtor/Resultats/clustering_perez_tot_new_data_sim_par_branche_0.65.pickle", 'rb') as fichier_sortie :
-#         mon_depickler = pickle.Unpickler(fichier_sortie)
-#         clusters = mon_depickler.load()
-#         
 #     with open("Resultats_sequences/data_carnaval2_withnear_v3.137.pickle", 'rb') as fichier_pickle_1 :
 #         mon_depickler = pickle.Unpickler(fichier_pickle_1)
 #         graphes = mon_depickler.load()
-#         
-#         test(clusters, graphes)
+#         print(len(graphes))
+         
+#     with open("Resultats_sequences/dico_organismes_2.pickle", 'rb') as fichier_pickle :
+#         mon_depickler = pickle.Unpickler(fichier_pickle)
+#         dico_org =  mon_depickler.load()
+#  
+#         compteur = 0
+#         for elt in dico_org :
+#             if dico_org[elt] == None : 
+#                 print(elt)
+#                 compteur += 1
+#         print(compteur)
 #         exit()
+#         
+#         compteur = 0
+#         for elt in dico_org :
+#             if dico_org[elt] == None :
+#                 dico_org[elt] = recup_org_gen(elt[0], elt[1])
+#             print(compteur)
+#             compteur += 1
+#              
+#             
+#         with open("Resultats_sequences/dico_organismes_2.pickle", 'wb') as fichier_pickle :
+#             mon_pickler = pickle.Pickler(fichier_pickle)
+#             mon_pickler.dump(dico_org)
+#            
+#             exit()
+               
+#         exit()
+
+
+
+            
+    
+#     liste_aminor = recup_liste_pos_aminor()
+#     
+#     dico_aminor = {}
+#     for elt in liste_aminor :
+#         if elt[0] not in dico_aminor :
+#             dico_aminor.update({elt[0] : [elt[1]]})
+#         else :
+#             dico_aminor[elt[0]].append(elt[1])
+#             
+#     for elt in dico_aminor :
+#         print(elt, dico_aminor[elt])
+#         
+#     #exit()
+#             
+#             
+#     analyse_resultats_struct(dico_aminor, [])
+#     exit()
     
 #     with open("/media/coline/Maxtor/Resultats/clustering_perez_tot_new_data_sim_par_branche_0.65.pickle", 'rb') as fichier_sortie :
 #         mon_depickler = pickle.Unpickler(fichier_sortie)
 #         clusters = mon_depickler.load()
-#     
-#         recherche_expr_reg(clusters, [], [], [])
+#          
+#     with open("Resultats_sequences/data_carnaval2_withnear_v3.137.pickle", 'rb') as fichier_pickle_1 :
+#         mon_depickler = pickle.Unpickler(fichier_pickle_1)
+#         graphes = mon_depickler.load()
+#          
+#         test(clusters, graphes)
 #         exit()
+    
+
     
 #     with open("Resultats_sequences/data_carnaval2_withnear_v3.137.pickle", 'rb') as fichier_pickle_1 :
 #         mon_depickler = pickle.Unpickler(fichier_pickle_1)
@@ -2565,12 +2748,12 @@ if __name__ == '__main__' :
 #     
 #     exit()
     
-    with open("Resultats_sequences/dico_recherche_struct_semi_aminor.pickle", 'rb') as fichier_pickle_3 : 
-        mon_pickler = pickle.Unpickler(fichier_pickle_3)
-        dico_recherche_struct_semi_aminor = mon_pickler.load()
-        print(list(dico_recherche_struct_semi_aminor.keys())[len(dico_recherche_struct_semi_aminor)-1])
-        print(dico_recherche_struct_semi_aminor[list(dico_recherche_struct_semi_aminor.keys())[len(dico_recherche_struct_semi_aminor)-1]])
-        print((('1VQP', '0'), 2357, 2293, 4, '[35, 29, 26, 3, 1, 21, 24, 25]', '[-1, 7, 6, 2, 4, 13, 15, 17]') in dico_recherche_struct_semi_aminor)
+#     with open("Resultats_sequences/dico_recherche_struct_semi_aminor.pickle", 'rb') as fichier_pickle_3 : 
+#         mon_pickler = pickle.Unpickler(fichier_pickle_3)
+#         dico_recherche_struct_semi_aminor = mon_pickler.load()
+#         print(list(dico_recherche_struct_semi_aminor.keys())[len(dico_recherche_struct_semi_aminor)-1])
+#         print(dico_recherche_struct_semi_aminor[list(dico_recherche_struct_semi_aminor.keys())[len(dico_recherche_struct_semi_aminor)-1]])
+#         print((('1VQP', '0'), 2357, 2293, 4, '[35, 29, 26, 3, 1, 21, 24, 25]', '[-1, 7, 6, 2, 4, 13, 15, 17]') in dico_recherche_struct_semi_aminor)
         #exit()
     liste_num_ARN = ["23S", "18S", "16S","Ribozyme", "Riboswitch", "SRP", "28S", "25S", "Intron", "arnt_16S_arnm", "arnt_16S"]
 
@@ -2589,7 +2772,31 @@ if __name__ == '__main__' :
                             if (elt, element) not in liste_tout :
                                 liste_tout.append((elt, element))
     print(liste_tout)
+    liste_non_redondant = non_redondantes_seq_RNA3Dmotifatlas_new(liste_tout)
+    #exit()
+    liste_aminor = recup_liste_pos_aminor()
     
+    with open("Resultats_sequences/data_carnaval2_withnear_v3.137.pickle", 'rb') as fichier_pickle_1 :
+        mon_depickler = pickle.Unpickler(fichier_pickle_1)
+        graphes = mon_depickler.load()
+        
+        print(('4V9Q', 'DV') in graphes)
+        #exit()
+    
+    with open("/media/coline/Maxtor/Resultats/clustering_perez_tot_new_data_sim_par_branche_0.65.pickle", 'rb') as fichier_sortie :
+        mon_depickler = pickle.Unpickler(fichier_sortie)
+        clusters = mon_depickler.load()
+     
+        recherche_expr_reg(clusters, liste_non_redondant, graphes, liste_aminor)
+        exit()
+#     exit()
+#     liste_non_redondant = non_redondantes_seq_RNA3Dmotifatlas(liste_tout)
+#     print(liste_non_redondant)
+    
+#     with open("Resultats_sequences/liste_non_redondant_struct.pickle", 'wb') as fichier_redondance :
+#         mon_pickler = pickle.Pickler(fichier_redondance)
+#         mon_pickler.dump(liste_non_redondant)
+    #exit()
     
 #     with open("Graphs/4w2g.pickle", 'rb') as fichier_pickle :
 #         mon_depickler = pickle.Unpickler(fichier_pickle)
@@ -2610,7 +2817,7 @@ if __name__ == '__main__' :
 #         exit()
             
     
-#     liste_aminor = recup_liste_pos_aminor()
+#     
 #     compteur = 0
 #     for elt in liste_aminor :
 #         if elt[0] == '4y4o' :
@@ -2620,9 +2827,9 @@ if __name__ == '__main__' :
 #              
 #     exit()
     
-    with open("Resultats_sequences/liste_non_redondant.pickle", 'rb') as fichier_redondance :
-        mon_depickler = pickle.Unpickler(fichier_redondance)
-        liste_non_redondant = mon_depickler.load()
+#     with open("Resultats_sequences/liste_non_redondant.pickle", 'rb') as fichier_redondance :
+#         mon_depickler = pickle.Unpickler(fichier_redondance)
+#         liste_non_redondant = mon_depickler.load()
         
     with open("Resultats_sequences/data_carnaval2_withnear_v3.137.pickle", 'rb') as fichier_pickle_1 :
         mon_depickler = pickle.Unpickler(fichier_pickle_1)
@@ -2698,7 +2905,7 @@ if __name__ == '__main__' :
     with open("/media/coline/Maxtor/Resultats/clustering_perez_tot_new_data_sim_par_branche_0.65.pickle", 'rb') as fichier_sortie :
         mon_depickler = pickle.Unpickler(fichier_sortie)
         clusters = mon_depickler.load()
-        recherche_struct(clusters, liste_nom_graphes_aminor, graphes, liste_aminor)
+        recherche_struct(clusters, liste_non_redondant, graphes, liste_aminor)
         
         exit()
 #     liste_aminor = recup_liste_pos_aminor()
